@@ -1,0 +1,20 @@
+{
+  "langName": "English", "htmlLang": "en", "ogLocale": "en_US",
+  "tagline": "Free HTML5 Games – Play Instantly, No Download",
+  "description": "Play free online HTML5 games in your browser. No download, no login. Works on PC and mobile.",
+  "home": "Home", "playNow": "▶ Play Now", "fullscreen": "⛶ Fullscreen",
+  "about": "About {title}", "howToPlay": "How to Play {title}", "faq": "FAQ",
+  "similar": "Similar Games", "playFreeOn": "Play free online games on {site}",
+  "gameTitle": "{title} – Play Online for Free | {site}",
+  "catTitle": "{name} – Play Free Online | {site}",
+  "comingSoon": "More games coming soon.", "notFound": "Page not found.", "backHome": "Back home",
+  "footer": "All games are free to play in your browser.", "aboutPage": "About", "privacyPage": "Privacy",
+  "aboutText": "{site} is a collection of free HTML5 games.",
+  "privacyText": "We use cookies for analytics and advertising (e.g. Google AdSense / Google Ad Manager). Third-party vendors may use cookies to serve ads based on prior visits.",
+  "adLabel": "Advertisement", "language": "Language",
+  "categories": {
+    "arcade": {"name": "Arcade Games", "short": "Arcade", "intro": "Fast, fun arcade games you can play instantly in your browser."},
+    "puzzle": {"name": "Puzzle Games", "short": "Puzzle", "intro": "Train your brain with free online puzzle and number games."},
+    "action": {"name": "Action Games", "short": "Action", "intro": "Run, jump and dodge in free HTML5 action games."}
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "siteName": "MiniPlay",
+  "siteUrl": "https://example.pages.dev",
+  "defaultLocale": "en",
+  "locales": ["en", "zh"],
+  "gaId": "",
+  "adsense": {
+    "enabled": false,
+    "clientId": "ca-pub-0000000000000000",
+    "slots": { "top": "1111111111", "sidebar": "2222222222", "belowGame": "3333333333" }
+  },
+  "gam": {
+    "enabled": false,
+    "networkCode": "12345678",
+    "publisherId": "pub-0000000000000000",
+    "adUnitPrefix": "/12345678/miniplay",
+    "slots": {
+      "top": { "unit": "top_leaderboard", "sizes": [[728, 90], [320, 50]] },
+      "sidebar": { "unit": "sidebar_rect", "sizes": [[300, 250], [300, 600]] },
+      "belowGame": { "unit": "below_game", "sizes": [[728, 90], [300, 250], [320, 100]] }
+    }
+  }
+}

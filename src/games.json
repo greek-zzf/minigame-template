@@ -1,0 +1,116 @@
+[
+  {
+    "slug": "snake",
+    "title": "Neon Snake",
+    "category": "arcade",
+    "tags": [
+      "snake",
+      "classic",
+      "retro"
+    ],
+    "embed": "/games/snake/index.html",
+    "thumb": "/thumbs/snake.svg",
+    "orientation": "landscape",
+    "short": "Guide the neon snake, eat the dots and grow as long as you can without hitting yourself.",
+    "description": "Neon Snake is a modern take on the classic snake game. Eat glowing food to grow longer and score points. The snake speeds up as you grow, so plan your route carefully. Playable on desktop with the keyboard and on mobile with swipe gestures.",
+    "controls": [
+      "Arrow keys / WASD: change direction",
+      "Swipe on mobile",
+      "Space / tap: start or restart"
+    ],
+    "faq": [
+      {
+        "q": "Is Neon Snake free?",
+        "a": "Yes, it is 100% free to play in your browser with no download."
+      },
+      {
+        "q": "Can I play on my phone?",
+        "a": "Yes. Swipe up, down, left or right to steer the snake."
+      },
+      {
+        "q": "Is my high score saved?",
+        "a": "Your best score is saved locally in your browser."
+      }
+    ],
+    "released": "2026-10-01",
+    "i18n": {
+      "zh": {
+        "title": "霓虹贪吃蛇",
+        "short": "控制霓虹小蛇吃掉光点，不断变长，别撞到自己！",
+        "description": "霓虹贪吃蛇是经典贪吃蛇的现代版本。吃掉发光的食物来变长并得分，蛇越长速度越快，需要提前规划路线。电脑用键盘、手机用滑动操作。",
+        "controls": [
+          "方向键 / WASD：改变方向",
+          "手机：上下左右滑动",
+          "空格 / 点击：开始或重新开始"
+        ],
+        "faq": [
+          {
+            "q": "霓虹贪吃蛇免费吗？",
+            "a": "完全免费，直接在浏览器中玩，无需下载。"
+          },
+          {
+            "q": "手机能玩吗？",
+            "a": "可以，上下左右滑动即可控制方向。"
+          },
+          {
+            "q": "最高分会保存吗？",
+            "a": "最高分保存在你的浏览器本地。"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "slug": "2048",
+    "title": "2048 Classic",
+    "category": "puzzle",
+    "tags": [
+      "2048",
+      "numbers",
+      "brain"
+    ],
+    "embed": "/games/2048/index.html",
+    "thumb": "/thumbs/2048.svg",
+    "orientation": "square",
+    "short": "Slide the tiles, merge equal numbers and reach the 2048 tile.",
+    "description": "2048 is a number puzzle game. Every move slides all tiles in one direction; two tiles with the same number merge into one. Keep merging to reach 2048 – and beyond. Simple rules, deep strategy.",
+    "controls": [
+      "Arrow keys / WASD: slide tiles",
+      "Swipe on mobile",
+      "R: new game"
+    ],
+    "faq": [
+      {
+        "q": "What is the best strategy for 2048?",
+        "a": "Keep your largest tile in one corner and build a descending chain along an edge."
+      },
+      {
+        "q": "What happens after 2048?",
+        "a": "You can keep playing for 4096, 8192 and higher."
+      }
+    ],
+    "released": "2026-10-01",
+    "i18n": {
+      "zh": {
+        "title": "2048 经典版",
+        "short": "滑动方块，合并相同数字，拼出 2048！",
+        "description": "2048 是一款数字益智游戏。每次操作所有方块向同一方向滑动，两个相同数字的方块会合并成一个。不断合并，冲击 2048 甚至更高。规则简单，策略深奥。",
+        "controls": [
+          "方向键 / WASD：滑动方块",
+          "手机：滑动操作",
+          "R：重新开始"
+        ],
+        "faq": [
+          {
+            "q": "2048 有什么技巧？",
+            "a": "把最大的方块固定在一个角落，沿一条边构建递减链。"
+          },
+          {
+            "q": "到 2048 之后呢？",
+            "a": "可以继续玩，冲击 4096、8192 甚至更高。"
+          }
+        ]
+      }
+    }
+  }
+]
