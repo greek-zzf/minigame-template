@@ -11,7 +11,7 @@
   "comingSoon": "More games coming soon.", "notFound": "Page not found.", "backHome": "Back home",
   "footer": "All games are free to play in your browser.", "aboutPage": "About", "privacyPage": "Privacy",
   "aboutText": "{site} is a collection of free HTML5 games.",
-  "privacyText": "We use cookies for analytics and advertising (e.g. Google AdSense / Google Ad Manager). Third-party vendors may use cookies to serve ads based on prior visits.",
+  "privacyText": "We use cookies for analytics (Google Analytics) to understand how the site is used.",
   "adLabel": "Advertisement", "language": "Language",
   "categories": {
     "arcade": {"name": "Arcade Games", "short": "Arcade", "intro": "Fast, fun arcade games you can play instantly in your browser."},
