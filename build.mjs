@@ -9,10 +9,10 @@ const L = Object.fromEntries(LOCALES.map(l => [l, R(`locales/${l}.json`)]));
 const OUT = 'dist', U = cfg.siteUrl.replace(/\/$/, '');
 if (/example\.|localhost/.test(U)) console.warn(`⚠️  site.config.json siteUrl 仍是占位 (${U})：canonical/hreflang/sitemap 都会指向错误域名，上线前务必改成真实域名！`);
 // meta description 补齐：短文案 + 本语言的通用后缀（避免过短/只有一句话）
-const md = (s, l) => { s = String(s || '').trim(); const sx = L[l].metaSuffix || ''; return sx && s.length < (L[l].htmlLang.startsWith('zh') ? 50 : 80) ? (L[l].htmlLang.startsWith('zh') ? s + sx : `${s} ${sx}`) : s; };
+const md = (s, l) => { s = String(s || '').trim(); const sx = L[l].metaSuffix || ''; return sx && s.length < 80 ? `${s} ${sx}` : s; };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = (s, v) => String(s).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? '');
-const pre = l => l === DEF ? '' : `/${l}`;                 // 默认语言在 /，其他在 /zh/ ...
+const pre = l => l === DEF ? '' : `/${l}`;                 // 默认语言在 /，其他语言用 /<lang>/ 前缀
 const loc = (l, p) => pre(l) + p;
 const tg = (g, l) => ({...g, ...(g.i18n?.[l] || {})});       // 游戏字段按语言覆盖，缺失回退默认语言
 const cat = (s, l) => ({slug: s, ...(L[l].categories?.[s] || L[DEF].categories?.[s] || {name: s, short: s, intro: ''})});
@@ -21,28 +21,19 @@ fs.rmSync(OUT, {recursive: true, force: true}); fs.cpSync('public', OUT, {recurs
 fs.copyFileSync('src/style.css', `${OUT}/style.css`);
 const write = (p, html) => { const f = path.join(OUT, p); fs.mkdirSync(path.dirname(f), {recursive: true}); fs.writeFileSync(f, html); };
 
-// ---------- 广告：GAM(GPT) 优先，其次 AdSense，否则占位 ----------
+// ---------- 广告：仅在启用 Google Ad Manager（GPT）时输出。未启用则不放广告位，避免空占位。 ----------
 const GAM = cfg.gam?.enabled ? cfg.gam : null;
-const ADS = !GAM && cfg.adsense?.enabled ? cfg.adsense : null;
-const adMode = GAM ? 'gam' : ADS ? 'adsense' : 'placeholder';
 function adHead(slotsUsed) {
-  if (GAM) {
-    const defs = slotsUsed.filter(s => GAM.slots[s]).map(s =>
-      `googletag.defineSlot(${JSON.stringify(`${GAM.adUnitPrefix.replace(/\/$/, '')}/${GAM.slots[s].unit}`)},${JSON.stringify(GAM.slots[s].sizes)},'gpt-${s}').addService(googletag.pubads());`).join('');
-    return `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" crossorigin="anonymous"></script>
+  if (!GAM) return '';
+  const defs = slotsUsed.filter(s => GAM.slots[s]).map(s =>
+    `googletag.defineSlot(${JSON.stringify(`${GAM.adUnitPrefix.replace(/\/$/, '')}/${GAM.slots[s].unit}`)},${JSON.stringify(GAM.slots[s].sizes)},'gpt-${s}').addService(googletag.pubads());`).join('');
+  return `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" crossorigin="anonymous"></script>
 <script>window.googletag=window.googletag||{cmd:[]};googletag.cmd.push(function(){${defs}googletag.pubads().enableSingleRequest();googletag.pubads().collapseEmptyDivs();googletag.enableServices();});</script>`;
-  }
-  if (ADS) return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADS.clientId}" crossorigin="anonymous"></script>`;
-  return '';
 }
 function ad(slot, cls, t) {
-  if (GAM && GAM.slots[slot]) {
-    const minH = Math.min(...GAM.slots[slot].sizes.map(s => s[1]));
-    return `<div class="adwrap ${cls}"><small>${esc(t.adLabel)}</small><div id="gpt-${slot}" style="min-height:${minH}px"><script>googletag.cmd.push(function(){googletag.display('gpt-${slot}')})</script></div></div>`;
-  }
-  if (ADS && ADS.slots[slot])
-    return `<div class="adwrap ${cls}"><small>${esc(t.adLabel)}</small><ins class="adsbygoogle" style="display:block" data-ad-client="${ADS.clientId}" data-ad-slot="${ADS.slots[slot]}" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div>`;
-  return `<div class="ad ${cls}" data-slot="${slot}">Ad slot: ${slot}</div>`;
+  if (!(GAM && GAM.slots[slot])) return '';
+  const minH = Math.min(...GAM.slots[slot].sizes.map(s => s[1]));
+  return `<div class="adwrap ${cls}"><small>${esc(t.adLabel)}</small><div id="gpt-${slot}" style="min-height:${minH}px"><script>googletag.cmd.push(function(){googletag.display('gpt-${slot}')})</script></div></div>`;
 }
 
 const card = (g, l) => { g = tg(g, l); return `<a class="card" href="${loc(l, `/game/${g.slug}/`)}"><img src="${g.thumb}" alt="${esc(g.title)}" loading="lazy" width="320" height="180"><span>${esc(g.title)}</span></a>`; };
@@ -62,7 +53,7 @@ ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" hr
 ${adHead(slots)}
 ${cfg.gaId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${cfg.gaId}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${cfg.gaId}')</script>` : ''}
 ${ld.map(o => `<script type="application/ld+json">${JSON.stringify(o)}</script>`).join('\n')}
-</head><body data-ads="${adMode}"><header><div class="wrap"><a class="logo" href="${loc(l, '/')}">🎮 ${esc(cfg.siteName)}</a><nav>${catSlugs.map(s => `<a href="${loc(l, `/category/${s}/`)}">${esc(cat(s, l).short)}</a>`).join('')}</nav>${sw}</div></header>
+</head><body${GAM ? ' data-ads="gam"' : ''}><header><div class="wrap"><a class="logo" href="${loc(l, '/')}">🎮 ${esc(cfg.siteName)}</a><nav>${catSlugs.map(s => `<a href="${loc(l, `/category/${s}/`)}">${esc(cat(s, l).short)}</a>`).join('')}</nav>${sw}</div></header>
 <main class="wrap">${body}</main>
 <footer><div class="wrap">© ${new Date().getFullYear()} ${esc(cfg.siteName)} · <a href="${loc(l, '/about/')}">${esc(t.aboutPage)}</a> · <a href="${loc(l, '/privacy/')}">${esc(t.privacyPage)}</a> · ${esc(t.footer)}</div></footer></body></html>`;
 }
@@ -133,12 +124,20 @@ const entries = LOCALES.flatMap(l => base.map(p => `<url><loc>${U}${loc(l, p)}</
   LOCALES.map(x => `<xhtml:link rel="alternate" hreflang="${L[x].htmlLang}" href="${U}${loc(x, p)}"/>`).join('')}<xhtml:link rel="alternate" hreflang="x-default" href="${U}${p}"/></url>`));
 write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${entries.join('\n')}\n</urlset>\n`);
 write('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${U}/sitemap.xml\n`);
-// ads.txt：AdSense 与 GAM 的发布商 ID 都写入（去重）
+// 旧 /zh/ 地址 301 到对应英文页。dist/_redirects 由 Cloudflare Pages 与 Netlify 读取；静态规则在前，通配在后。
+const redirs = ['# Former Chinese URLs', '/zh / 301', '/zh/ / 301', '/zh/index.html / 301'];
+for (const p of base) {
+  if (p === '/') continue;
+  redirs.push(`/zh${p} ${p} 301`);
+  redirs.push(`/zh${p.replace(/\/$/, '')} ${p} 301`);
+}
+redirs.push('/zh/* /:splat 301');
+write('_redirects', redirs.join('\n') + '\n');
+// ads.txt：仅在启用 GAM 且配置了发布商 ID 时生成（不写 AdSense 占位 ID）
 const pubs = new Set();
-if (cfg.adsense?.enabled && cfg.adsense.clientId) pubs.add(cfg.adsense.clientId.replace(/^ca-/, ''));
 if (cfg.gam?.enabled && cfg.gam.publisherId) pubs.add(cfg.gam.publisherId.replace(/^ca-/, ''));
 if (pubs.size) write('ads.txt', [...pubs].map(p => `google.com, ${p}, DIRECT, f08c47fec0942fa0`).join('\n') + '\n');
 // 游戏 iframe 原始页（/games/*）是薄内容重复页：加 noindex（meta + X-Robots-Tag），不要用 robots.txt 屏蔽，否则 Google 看不到 noindex
 for (const d of fs.readdirSync(`${OUT}/games`)) { const f = `${OUT}/games/${d}/index.html`; if (fs.existsSync(f)) { const h = fs.readFileSync(f, 'utf8'); if (!/name="robots"/.test(h)) fs.writeFileSync(f, h.replace(/<meta charset[^>]*>/i.test(h) ? /(<meta charset[^>]*>)/i : /(<head>)/i, '$1<meta name="robots" content="noindex">')); } }
 write('_headers', `/games/*\n  Cache-Control: public, max-age=86400\n  X-Robots-Tag: noindex\n/*\n  X-Content-Type-Options: nosniff\n`);
-console.log(`Built ${base.length} pages × ${LOCALES.length} locales (${LOCALES.join(',')}), ads=${adMode} -> ${OUT}/`);
+console.log(`Built ${base.length} pages × ${LOCALES.length} locales (${LOCALES.join(',')}), ads=${GAM ? 'gam' : 'off'} -> ${OUT}/`);

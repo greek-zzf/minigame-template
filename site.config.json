@@ -3,19 +3,9 @@
   "siteUrl": "https://dlehq.com",
   "defaultLocale": "en",
   "locales": [
-    "en",
-    "zh"
+    "en"
   ],
   "gaId": "G-J6LCD2EE50",
-  "adsense": {
-    "enabled": false,
-    "clientId": "ca-pub-0000000000000000",
-    "slots": {
-      "top": "1111111111",
-      "sidebar": "2222222222",
-      "belowGame": "3333333333"
-    }
-  },
   "gam": {
     "enabled": false,
     "networkCode": "12345678",
