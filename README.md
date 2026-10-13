@@ -37,3 +37,11 @@ Pages are extensionless and have no trailing slash, except the homepage `https:/
 Removed URLs stay in `dist/_redirects` and `vercel.json`: `/game/snake/`, `/game/2048/`, `/category/arcade/`, and `/category/action/` go to `/`; `/category/puzzle/` goes to `/category/quiz-trivia`. Former `/zh/` URLs 301 straight to the no-slash English path. Old directory indexes such as `/game/heardle/index.html` 301 to `/game/heardle`, because Pages no longer redirects that path once the `index.html` file is gone.
 
 The site does not render ads. Google Analytics still loads when `gaId` is set.
+
+## Deploy
+
+A push to `main`, or a manual **Deploy to Cloudflare Pages** run, uses Node 22 to run `npm run build` and uploads `dist/` (including `_redirects` and `_headers`) to the Cloudflare Pages project `dlehq` on branch `main`.
+
+Required repository secret: `CLOUDFLARE_API_TOKEN` (a Cloudflare API token that can edit Pages on this account). The account id is in the workflow. Set secret `CLOUDFLARE_ACCOUNT_ID` to override it.
+
+Local upload: `npm run build && npx wrangler pages deploy dist --project-name=dlehq --branch=main`.
