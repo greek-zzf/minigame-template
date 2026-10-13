@@ -82,6 +82,10 @@ for (const l of LOCALES) {
     const g = tg(g0, l), c = cat(g.category, l), p = `/game/${g.slug}/`;
     const rel = games.filter(x => x.slug !== g.slug).sort((a,b) => (b.category===g.category) - (a.category===g.category)).slice(0, 12);
     const tv = {...v, title: g.title};
+    const aboutHtml = (Array.isArray(g.about) && g.about.length ? g.about : [g.description]).map(x => `<p>${esc(x)}</p>`).join('');
+    const tipsHtml = Array.isArray(g.tips) && g.tips.length ? `<h2>${esc(t.tips || 'Tips')}</h2><ul>${g.tips.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+    const frameClass = g.orientation === 'square' ? 'square' : g.orientation === 'tall' ? 'tall' : '';
+    const headline = g.headline || g.title;
     const ld = [
       {'@context':'https://schema.org','@type':'VideoGame',name:g.title,description:g.short,url:U+loc(l,p),image:U+g.thumb,genre:c.name,inLanguage:t.htmlLang,
         gamePlatform:['Web browser','PC','Mobile'],applicationCategory:'Game',operatingSystem:'Any',datePublished:g.released,
@@ -93,12 +97,13 @@ for (const l of LOCALES) {
     add(p, page({l, p, title: fmt(t.gameTitle, tv), desc: md(g.short, l), ld, image: g.thumb, slots: ['belowGame','sidebar'], body: `
 <div class="crumb"><a href="${loc(l,'/')}">${esc(t.home)}</a> › <a href="${loc(l,`/category/${c.slug}/`)}">${esc(c.name)}</a> › ${esc(g.title)}</div>
 <div class="layout"><div>
- <div class="player" id="player"><div class="frame ${g.orientation==='square'?'square':''}" id="frame">
+ <div class="player" id="player"><div class="frame ${frameClass}" id="frame">
   <div class="cover" id="cover"><img src="${g.thumb}" alt="${esc(g.title)}" width="160" height="90" fetchpriority="high"><button class="play">${esc(t.playNow)}</button></div></div>
-  <div class="bar"><h1 style="margin:0;font-size:18px">${esc(g.title)}</h1><button id="fs">${esc(t.fullscreen)}</button></div></div>
+  <div class="bar"><h1>${esc(headline)}</h1><button id="fs">${esc(t.fullscreen)}</button></div></div>
  ${ad('belowGame','ad-in',t)}
- <section class="box"><h2>${esc(fmt(t.about, tv))}</h2><p>${esc(g.description)}</p>
+ <section class="box"><h2>${esc(fmt(t.about, tv))}</h2>${aboutHtml}
   <h2>${esc(fmt(t.howToPlay, tv))}</h2><ul>${g.controls.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+  ${tipsHtml}
   <div class="tags">${g.tags.map(x=>`<a href="${loc(l,`/category/${c.slug}/`)}">#${esc(x)}</a>`).join('')}</div></section>
  ${g.faq?.length ? `<section class="box"><h2>${esc(t.faq)}</h2>${g.faq.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('')}</section>` : ''}
 </div><aside class="side">${ad('sidebar','ad-side',t)}<h2>${esc(t.similar)}</h2><div class="grid">${rel.map(x => card(x, l)).join('')}</div></aside></div>

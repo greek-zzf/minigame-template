@@ -64,5 +64,82 @@
       }
     ],
     "released": "2026-10-01"
+  },
+  {
+    "slug": "songless-unlimited",
+    "title": "Songless Unlimited",
+    "headline": "Songless Unlimited – Play Free Online",
+    "category": "puzzle",
+    "tags": [
+      "songless",
+      "music",
+      "quiz",
+      "unlimited"
+    ],
+    "embed": "/games/songless-unlimited/index.html",
+    "thumb": "/thumbs/songless-unlimited.svg",
+    "orientation": "tall",
+    "short": "Play Songless Unlimited free online: pick a music category, hear a one-second clip, and guess the song. No download and no daily limit.",
+    "description": "Songless Unlimited is a free music guessing game for the browser. You pick one category, press play, and try to name the recording from a clip that starts at a single second.",
+    "about": [
+      "Songless Unlimited is a free music guessing game for the browser. You pick one category, press play, and try to name the recording from a clip that starts at a single second. There is no account and no daily cutoff. Finish a round and another song from that same lane is ready.",
+      "A lane is a listening habit, not a dump of every track ever released. Genre lanes cover pop, rock, metal, hip-hop, rap, R&B, country, EDM, K-pop, indie, disco, and alternative. Decade lanes run from the 1940s through the 2020s. Screen lanes cover movie cues, television themes, musicals, Disney songs, anime openings, and adventure scores. Staying in one lane for a few rounds is easier than hopping, because the drums, guitars, or vocal tone start to feel familiar.",
+      "Every round has six listens. The clip grows from one second to two, four, seven, eleven, and finally sixteen. A correct title ends the round at once. If you only know the singer, send that guess: it is marked close, the step is spent, and the longer clips stay available for the title. Skip when the opening is silence or noise. A skip spends a step as well. On the sixth listen the title, artist, and cover are shown either way.",
+      "Early solves are worth more points. A correct answer also adds one to your streak, and a miss sets that streak back to zero. The best score and best streak for this game stay in this browser only. The run is not uploaded. What you hear is a short official preview meant for identification, not the full song. If a preview fails to load, you can move to another song without losing the streak."
+    ],
+    "controls": [
+      "Choose a music category to set the pool of songs",
+      "Press play to hear the opening second of a preview",
+      "Type a title or artist, or pick a row from the suggestions",
+      "A matching title solves the round and scores points",
+      "Skip, or miss, to unlock the next longer clip",
+      "After six listens the answer is revealed and the next song loads",
+      "Use All categories to leave a lane; the best streak saved on this device stays put"
+    ],
+    "tips": [
+      "Start with a decade or genre you actually lived with. A familiar snare or synth is worth more than a bigger catalog.",
+      "Hear the clip once before you type. The first drum hit, a breath, or a bass note is often the whole clue.",
+      "If the voice is obvious and the title is not, submit the artist. A close result tells you the singer is right.",
+      "Use the suggestion list when spelling is fuzzy. Choosing that row counts as the title and artist you meant.",
+      "After two misses, stay in the lane. Switching categories throws away the ear you just warmed up.",
+      "Raise the volume for the one-second step, then leave it. Later steps are the same recording, only longer.",
+      "Headphones make the one-second step easier to judge, but they are optional. Once a chorus arrives, a phone speaker is enough.",
+      "When the list shows the song you meant, choose that row instead of retyping it. The row is scored as that title and that artist."
+    ],
+    "faq": [
+      {
+        "q": "Is Songless Unlimited free?",
+        "a": "Yes. It runs in the browser with no download, no login, and no daily cap. Play one round or stay for a long session."
+      },
+      {
+        "q": "How long is each clip?",
+        "a": "The first listen is one second. Each skip or miss opens the same preview further: two seconds, four, seven, eleven, then sixteen. It is a sample, not the full track."
+      },
+      {
+        "q": "What counts as a correct guess?",
+        "a": "The title has to match, ignoring case, accents, and extra punctuation. Featured-artist tags and labels such as radio edit are ignored. Naming only the artist is a close guess: it spends a step and does not solve the round."
+      },
+      {
+        "q": "Can I play on a phone?",
+        "a": "Yes. Tap play, type in the box, and choose a suggestion. The fullscreen button on the game page gives the board more room."
+      },
+      {
+        "q": "Why is the first second so hard?",
+        "a": "One second is enough when the intro is famous and almost useless when the song fades in. Skip to buy a longer listen instead of spending guesses on silence."
+      },
+      {
+        "q": "Is my score shared?",
+        "a": "No. Streak and best score stay in local storage on your device. Clearing site data for this site resets them."
+      },
+      {
+        "q": "What if a song will not play?",
+        "a": "Preview files sometimes fail to load. Choose another song from that screen. A broken preview does not reset your streak, and the rest of the category keeps working."
+      },
+      {
+        "q": "Can I switch category during a run?",
+        "a": "Yes. All categories sends you back to the lane list. Opening a new lane clears the score and streak for the run you just left. The best streak saved on this device stays where it is."
+      }
+    ],
+    "released": "2026-10-13"
   }
 ]
