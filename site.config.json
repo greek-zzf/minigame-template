@@ -1,13 +1,20 @@
 {
   "siteName": "MiniPlay",
-  "siteUrl": "https://example.pages.dev",
+  "siteUrl": "https://dlehq.com",
   "defaultLocale": "en",
-  "locales": ["en", "zh"],
-  "gaId": "",
+  "locales": [
+    "en",
+    "zh"
+  ],
+  "gaId": "G-J6LCD2EE50",
   "adsense": {
     "enabled": false,
     "clientId": "ca-pub-0000000000000000",
-    "slots": { "top": "1111111111", "sidebar": "2222222222", "belowGame": "3333333333" }
+    "slots": {
+      "top": "1111111111",
+      "sidebar": "2222222222",
+      "belowGame": "3333333333"
+    }
   },
   "gam": {
     "enabled": false,
@@ -15,9 +22,49 @@
     "publisherId": "pub-0000000000000000",
     "adUnitPrefix": "/12345678/miniplay",
     "slots": {
-      "top": { "unit": "top_leaderboard", "sizes": [[728, 90], [320, 50]] },
-      "sidebar": { "unit": "sidebar_rect", "sizes": [[300, 250], [300, 600]] },
-      "belowGame": { "unit": "below_game", "sizes": [[728, 90], [300, 250], [320, 100]] }
+      "top": {
+        "unit": "top_leaderboard",
+        "sizes": [
+          [
+            728,
+            90
+          ],
+          [
+            320,
+            50
+          ]
+        ]
+      },
+      "sidebar": {
+        "unit": "sidebar_rect",
+        "sizes": [
+          [
+            300,
+            250
+          ],
+          [
+            300,
+            600
+          ]
+        ]
+      },
+      "belowGame": {
+        "unit": "below_game",
+        "sizes": [
+          [
+            728,
+            90
+          ],
+          [
+            300,
+            250
+          ],
+          [
+            320,
+            100
+          ]
+        ]
+      }
     }
   }
 }
