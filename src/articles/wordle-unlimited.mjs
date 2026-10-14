@@ -4,7 +4,7 @@ export default {
     { p: [
       'Folio is DLE HQ’s unlimited five-letter word game. Each round hides one word. You have six guesses. Every guess has to be a real five-letter word, and the tiles tell you what to do next. This is a wordle unlimited format with a different name, a paper-and-ink board, and blue, apricot, and slate tiles. Unofficial game. Not affiliated with The New York Times or Wordle. The logo is the word Folio, not a newspaper masthead, and the colors are not the green-and-yellow pair people associate with that puzzle.',
       'The board above this guide is the game, including on the homepage where Folio is embedded so you can start a round without a second click through the site. Type on a physical keyboard or tap the on-screen keys. Enter submits the guess. Backspace, or the Del key, removes a letter. A new word is ready as soon as the round ends, and the New word button starts another round immediately if you want to leave the current one.',
-      'Folio is the word game on this site. If you want a listening puzzle instead, [play Songless Unlimited, the free music guessing game](/game/songless-unlimited/), which is an older page, or start from the [DLE HQ homepage](/) and browse the rest of the shelf. Word puzzles as a group live under [Word DLE games](/category/word/).',
+      'Folio is the word game on this site. If you want a listening puzzle instead, [play Songless Unlimited, the free music guessing game](/game/songless-unlimited), which is an older page, or start from the [DLE HQ homepage](/) and browse the rest of the shelf. Word puzzles as a group live under [Word DLE games](/category/word).',
     ]},
     { h3: 'Use a keyboard, with no download' },
     { p: [
@@ -58,7 +58,7 @@ export default {
       'Use Colorblind colors if blue and apricot are hard to separate on your screen. The stripes and the slash carry the same information, and the share text uses #, +, and - so a friend can read the result without those hues. Turn the option on once. It stays on for the next round.',
     ]},
     { p: [
-      'Folio is one game on a small site. When you want a break from letters, the [DLE HQ homepage](/) has the games that are actually built, and [Songless Unlimited](/game/songless-unlimited/) is there if you would rather name a song than a word.',
+      'Folio is one game on a small site. When you want a break from letters, the [DLE HQ homepage](/) has the games that are actually built, and [Songless Unlimited](/game/songless-unlimited) is there if you would rather name a song than a word.',
     ]},
   ],
   faq: [

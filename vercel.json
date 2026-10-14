@@ -1,4 +1,6 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
   "redirects": [
     {
       "source": "/game/snake/",
@@ -82,22 +84,22 @@
     },
     {
       "source": "/category/puzzle/",
-      "destination": "/category/quiz-trivia/",
+      "destination": "/category/quiz-trivia",
       "statusCode": 301
     },
     {
       "source": "/zh/category/puzzle/",
-      "destination": "/category/quiz-trivia/",
+      "destination": "/category/quiz-trivia",
       "statusCode": 301
     },
     {
       "source": "/category/puzzle",
-      "destination": "/category/quiz-trivia/",
+      "destination": "/category/quiz-trivia",
       "statusCode": 301
     },
     {
       "source": "/zh/category/puzzle",
-      "destination": "/category/quiz-trivia/",
+      "destination": "/category/quiz-trivia",
       "statusCode": 301
     },
     {
@@ -117,62 +119,62 @@
     },
     {
       "source": "/zh/category/music/",
-      "destination": "/category/music/",
+      "destination": "/category/music",
       "statusCode": 301
     },
     {
       "source": "/zh/category/music",
-      "destination": "/category/music/",
+      "destination": "/category/music",
       "statusCode": 301
     },
     {
       "source": "/zh/game/songless-unlimited/",
-      "destination": "/game/songless-unlimited/",
+      "destination": "/game/songless-unlimited",
       "statusCode": 301
     },
     {
       "source": "/zh/game/songless-unlimited",
-      "destination": "/game/songless-unlimited/",
+      "destination": "/game/songless-unlimited",
       "statusCode": 301
     },
     {
       "source": "/zh/game/heardle/",
-      "destination": "/game/heardle/",
+      "destination": "/game/heardle",
       "statusCode": 301
     },
     {
       "source": "/zh/game/heardle",
-      "destination": "/game/heardle/",
+      "destination": "/game/heardle",
       "statusCode": 301
     },
     {
       "source": "/zh/game/wordle-unlimited/",
-      "destination": "/game/wordle-unlimited/",
+      "destination": "/game/wordle-unlimited",
       "statusCode": 301
     },
     {
       "source": "/zh/game/wordle-unlimited",
-      "destination": "/game/wordle-unlimited/",
+      "destination": "/game/wordle-unlimited",
       "statusCode": 301
     },
     {
       "source": "/zh/about/",
-      "destination": "/about/",
+      "destination": "/about",
       "statusCode": 301
     },
     {
       "source": "/zh/about",
-      "destination": "/about/",
+      "destination": "/about",
       "statusCode": 301
     },
     {
       "source": "/zh/privacy/",
-      "destination": "/privacy/",
+      "destination": "/privacy",
       "statusCode": 301
     },
     {
       "source": "/zh/privacy",
-      "destination": "/privacy/",
+      "destination": "/privacy",
       "statusCode": 301
     },
     {

@@ -32,6 +32,8 @@ A category with fewer than 2 games is `noindex` and left out of `sitemap.xml`. T
 4. Add a record to `src/games.json`: `slug`, `title`, `linkPhrase`, `category`, `tags`, `embed`, `thumb`, `orientation` (`board`, `tall`, `landscape`, or `square`), `short`, `added`, `released`, `popularity`, `keyword`. Set `featured: true` on the one game embedded on the homepage. Set `disclaimer` when the game must show an affiliation notice, and put that same sentence in the game script.
 5. `npm run build`.
 
-Removed URLs stay in `dist/_redirects` and `vercel.json`: `/game/snake/`, `/game/2048/`, `/category/arcade/`, and `/category/action/` go to `/`; `/category/puzzle/` goes to `/category/quiz-trivia/`. Former `/zh/` URLs still 301 to the English path, and removed Chinese URLs 301 straight to the new target.
+Pages are extensionless and have no trailing slash, except the homepage `https://dlehq.com/`. A game lives at `https://dlehq.com/game/heardle` (file `dist/game/heardle.html`). Cloudflare Pages serves that file at `/game/heardle` and 308s `/game/heardle.html` and `/game/heardle/` to it in one hop. Do not switch those pages back to `index.html` inside a directory: Pages would canonize the trailing-slash URL instead.
+
+Removed URLs stay in `dist/_redirects` and `vercel.json`: `/game/snake/`, `/game/2048/`, `/category/arcade/`, and `/category/action/` go to `/`; `/category/puzzle/` goes to `/category/quiz-trivia`. Former `/zh/` URLs 301 straight to the no-slash English path. Old directory indexes such as `/game/heardle/index.html` 301 to `/game/heardle`, because Pages no longer redirects that path once the `index.html` file is gone.
 
 The site does not render ads. Google Analytics still loads when `gaId` is set.

@@ -37,8 +37,25 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
 }[ch]));
 const json = value => JSON.stringify(value).replace(/</g, '\\u003c');
 const inline = value => esc(value).replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, text, href) => `<a href="${href}">${text}</a>`);
-const pre = code => code === DEF ? '' : `/${code}`;
-const loc = (code, urlPath) => pre(code) + urlPath;
+// Public URLs have no trailing slash except the homepage (`/` , or `/zh/` for a non-default locale).
+const bare = urlPath => {
+  const raw = String(urlPath || '/');
+  const hashAt = raw.indexOf('#');
+  const before = hashAt >= 0 ? raw.slice(0, hashAt) : raw;
+  const suffix = hashAt >= 0 ? raw.slice(hashAt) : '';
+  if (before === '/' || before === '') return '/' + suffix;
+  return '/' + before.replace(/^\/+|\/+$/g, '') + suffix;
+};
+const loc = (code, urlPath) => {
+  const path = bare(urlPath);
+  const hashAt = path.indexOf('#');
+  const pathname = hashAt >= 0 ? path.slice(0, hashAt) : path;
+  const suffix = hashAt >= 0 ? path.slice(hashAt) : '';
+  if (pathname === '/') return (code === DEF ? '/' : `/${code}/`) + suffix;
+  return (code === DEF ? '' : `/${code}`) + pathname + suffix;
+};
+// Cloudflare Pages redirects /x/index.html to /x/ (trailing slash). A file at dist/x.html is served at /x,
+// and both /x.html and /x/ 308 once to /x. Do not also emit dist/x/index.html or /x/ stays a 200.
 const gameText = (game, code) => ({ ...game, ...(game.i18n?.[code] || {}) });
 const cat = (slug, code) => ({ slug, ...(L[code].categories?.[slug] || L[DEF].categories?.[slug] || { name: slug, short: slug, intro: '' }) });
 const addedOf = game => game.added || game.released;
@@ -140,7 +157,7 @@ function shell({ code, title, desc, urlPath, body, ld = [], image, noindex = fal
   return `<!doctype html><html lang="${dict.htmlLang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title><meta name="description" content="${esc(desc)}">
-${noindex ? '<meta name="robots" content="noindex, follow">' : `<link rel="canonical" href="${url}">${alternates}`}<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="${url}">${noindex ? '<meta name="robots" content="noindex, follow">' : alternates}<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website"><meta property="og:locale" content="${dict.ogLocale}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${img}"><meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/style.css">
 ${analytics}
@@ -160,8 +177,11 @@ const counts = {};
 for (const code of LOCALES) {
   const dict = L[code];
   const add = (urlPath, html) => {
-    const rel = loc(code, urlPath).replace(/^\//, '');
-    write(rel + (urlPath.endsWith('/') ? 'index.html' : ''), html);
+    const pathname = loc(code, urlPath).replace(/#.*$/, '');
+    const file = pathname.endsWith('/')
+      ? (pathname === '/' ? 'index.html' : pathname.slice(1) + 'index.html')
+      : pathname.slice(1) + '.html';
+    write(file, html);
   };
   const featured = games.find(game => game.featured) || games[0];
   const featuredView = gameText(featured, code);
@@ -409,12 +429,13 @@ write('404.html', shell({
   body: `<h1>404</h1><p>${esc(L[DEF].notFound)} <a href="/">${esc(L[DEF].backHome)}</a></p><div class="grid">${games.map(game => card(game, DEF)).join('')}</div>`,
 }));
 
-const indexedPaths = ['/', ...indexableCats().map(slug => `/category/${slug}/`), ...games.map(game => `/game/${game.slug}/`), '/about/', '/privacy/'];
+const pagePaths = ['/', ...catSlugs.map(slug => `/category/${slug}`), ...games.map(game => `/game/${game.slug}`), '/about', '/privacy'];
+const indexedPaths = ['/', ...indexableCats().map(slug => `/category/${slug}`), ...games.map(game => `/game/${game.slug}`), '/about', '/privacy'];
 const lastmod = urlPath => {
-  if (urlPath === '/') return games.map(addedOf).sort().at(-1) || TODAY;
-  const game = games.find(item => urlPath === `/game/${item.slug}/`);
+  if (bare(urlPath) === '/') return games.map(addedOf).sort().at(-1) || TODAY;
+  const game = games.find(item => bare(urlPath) === `/game/${item.slug}`);
   if (game) return addedOf(game);
-  const match = urlPath.match(/^\/category\/([^/]+)\/$/);
+  const match = bare(urlPath).match(/^\/category\/([^/]+)$/);
   if (match) {
     const list = gamesIn(match[1]).map(addedOf).sort();
     return list.at(-1) || TODAY;
@@ -423,7 +444,7 @@ const lastmod = urlPath => {
 };
 const entries = LOCALES.flatMap(code => indexedPaths.map(urlPath => `<url><loc>${SITE}${loc(code, urlPath)}</loc><lastmod>${lastmod(urlPath)}</lastmod>${
   LOCALES.map(item => `<xhtml:link rel="alternate" hreflang="${L[item].htmlLang}" href="${SITE}${loc(item, urlPath)}"/>`).join('')
-}<xhtml:link rel="alternate" hreflang="x-default" href="${SITE}${urlPath}"/></url>`));
+}<xhtml:link rel="alternate" hreflang="x-default" href="${SITE}${loc(DEF, urlPath)}"/></url>`));
 write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${entries.join('\n')}\n</urlset>\n`);
 write('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 
@@ -436,20 +457,30 @@ const legacy = [
   ['/category/arcade', '/'],
   ['/category/action/', '/'],
   ['/category/action', '/'],
-  ['/category/puzzle/', '/category/quiz-trivia/'],
-  ['/category/puzzle', '/category/quiz-trivia/'],
+  ['/category/puzzle/', '/category/quiz-trivia'],
+  ['/category/puzzle', '/category/quiz-trivia'],
 ];
+// Static rules first, splat last. Do not add /game/heardle/ → /game/heardle here:
+// with only heardle.html on disk, Pages already 308s that slash URL once.
+// /game/heardle/index.html would 404 after leaving the directory layout, so it is listed.
 const redirects = ['# Removed games and old categories'];
 for (const [from, to] of legacy) {
   redirects.push(`${from} ${to} 301`);
   redirects.push(`/zh${from} ${to} 301`);
+  if (from.endsWith('/') && from !== '/') {
+    redirects.push(`${from}index.html ${to} 301`);
+    redirects.push(`/zh${from}index.html ${to} 301`);
+  }
 }
 redirects.push('# Former Chinese URLs');
 redirects.push('/zh / 301', '/zh/ / 301', '/zh/index.html / 301');
-for (const urlPath of indexedPaths) {
+for (const urlPath of pagePaths) {
   if (urlPath === '/') continue;
-  redirects.push(`/zh${urlPath} ${urlPath} 301`);
-  redirects.push(`/zh${urlPath.replace(/\/$/, '')} ${urlPath} 301`);
+  const target = loc(DEF, urlPath);
+  redirects.push(`/zh${target} ${target} 301`);
+  redirects.push(`/zh${target}/ ${target} 301`);
+  redirects.push(`/zh${target}/index.html ${target} 301`);
+  redirects.push(`${target}/index.html ${target} 301`);
 }
 redirects.push('/zh/* /:splat 301');
 write('_redirects', redirects.join('\n') + '\n');
@@ -474,15 +505,16 @@ if (/>Guides</.test(home)) throw new Error('empty guides section rendered');
 if (/100\+/.test(home)) throw new Error('homepage claims 100+');
 if (/googletag\.cmd|adsbygoogle|doubleclick|securepubads|adsense/i.test(home)) throw new Error('ads on homepage');
 for (const slug of catSlugs) {
-  const html = fs.readFileSync(`${OUT}/category/${slug}/index.html`, 'utf8');
+  const html = fs.readFileSync(`${OUT}/category/${slug}.html`, 'utf8');
   const thin = gamesIn(slug).length < 2;
   const expectedTitle = `<title>${esc(cat(slug, DEF).name)} DLE Games – Play Free Daily ${esc(cat(slug, DEF).name)} Puzzles | DLE HQ</title>`;
   const titled = html.includes(expectedTitle);
   if (!titled) throw new Error('category title ' + slug);
   if (thin && !html.includes('noindex')) throw new Error('missing noindex ' + slug);
   if (!thin && html.includes('noindex')) throw new Error('unexpected noindex ' + slug);
-  if (thin && sitemap.includes(`/category/${slug}/`)) throw new Error('thin category in sitemap ' + slug);
-  if (!thin && !sitemap.includes(`/category/${slug}/`)) throw new Error('indexable category missing from sitemap ' + slug);
+  const locTag = `<loc>${SITE}/category/${slug}</loc>`;
+  if (thin && sitemap.includes(locTag)) throw new Error('thin category in sitemap ' + slug);
+  if (!thin && !sitemap.includes(locTag)) throw new Error('indexable category missing from sitemap ' + slug);
 }
 for (const [from, to] of legacy) {
   if (!redirectFile.includes(`${from} ${to} 301`)) throw new Error('missing redirect ' + from);
@@ -492,15 +524,40 @@ if (!redirectFile.includes('/zh/ / 301') || !redirectFile.includes('/zh/* /:spla
 for (const game of games) {
   if (game.disclaimer) {
     const script = fs.readFileSync(`public/games/${game.slug}/game.js`, 'utf8');
-    const page = fs.readFileSync(`${OUT}/game/${game.slug}/index.html`, 'utf8');
+    const page = fs.readFileSync(`${OUT}/game/${game.slug}.html`, 'utf8');
     if (!script.includes(game.disclaimer) || !page.includes(game.disclaimer)) throw new Error('disclaimer missing ' + game.slug);
   }
-  const page = fs.readFileSync(`${OUT}/game/${game.slug}/index.html`, 'utf8');
+  const page = fs.readFileSync(`${OUT}/game/${game.slug}.html`, 'utf8');
   if (!page.includes(`<h1>${game.title}</h1>`)) throw new Error('h1 ' + game.slug);
   if (!page.includes(`<title>${game.title} – Play Free Online (Unlimited, No Download) | DLE HQ</title>`)) throw new Error('game title ' + game.slug);
   if (!page.includes('FAQPage') || !page.includes('BreadcrumbList')) throw new Error('schema ' + game.slug);
 }
 if (fs.existsSync(`${OUT}/games/snake`) || fs.existsSync(`${OUT}/games/2048`)) throw new Error('removed games still built');
+function expectCanonical(file, expected) {
+  const html = fs.readFileSync(file, 'utf8');
+  const found = [...html.matchAll(/<link rel="canonical" href="([^"]+)">/g)].map(match => match[1]);
+  const og = [...html.matchAll(/<meta property="og:url" content="([^"]+)">/g)].map(match => match[1]);
+  if (found.length !== 1 || found[0] !== expected || og.length !== 1 || og[0] !== expected) {
+    throw new Error(`canonical ${file}: ${found.join(',')} og ${og.join(',')} != ${expected}`);
+  }
+  if ((html.match(/rel="canonical"/g) || []).length !== 1) throw new Error('extra canonical ' + file);
+}
+expectCanonical(`${OUT}/index.html`, `${SITE}/`);
+expectCanonical(`${OUT}/404.html`, `${SITE}/404`);
+expectCanonical(`${OUT}/about.html`, `${SITE}/about`);
+expectCanonical(`${OUT}/privacy.html`, `${SITE}/privacy`);
+for (const slug of catSlugs) expectCanonical(`${OUT}/category/${slug}.html`, `${SITE}/category/${slug}`);
+for (const game of games) expectCanonical(`${OUT}/game/${game.slug}.html`, `${SITE}/game/${game.slug}`);
+for (const match of sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)) {
+  const path = match[1].slice(SITE.length);
+  if (path !== '/' && path.endsWith('/')) throw new Error('sitemap trailing slash ' + match[1]);
+}
+for (const line of redirectFile.split('\n')) {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith('#')) continue;
+  const dest = trimmed.split(/\s+/)[1];
+  if (dest !== '/' && dest.endsWith('/')) throw new Error('redirect target trailing slash ' + trimmed);
+}
 console.log(`Built DLE HQ. Fresh through +${FRESH_DAYS} days from added date (today ${TODAY}).`);
 for (const [slug, count] of Object.entries(counts)) console.log(`  ${slug}: ${count} words`);
 console.log(`Sitemap URLs: ${indexedPaths.length}. Indexable categories: ${indexableCats().join(', ') || '(none)'}.`);
