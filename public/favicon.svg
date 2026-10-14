@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect width="320" height="180" fill="#0b1026"/><path d="M60 120h80v-40h60v40h40" stroke="#39ff9f" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="270" cy="60" r="9" fill="#ff3e7f"/><text x="20" y="40" fill="#fff" font-family="sans-serif" font-size="26" font-weight="700">NEON SNAKE</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#1b2430"/>
+  <rect x="6" y="18" width="3" height="8" rx="1" fill="#ff6b4a"/>
+  <rect x="11" y="14" width="3" height="12" rx="1" fill="#f0c36a"/>
+  <rect x="16" y="10" width="3" height="16" rx="1" fill="#8eb6ff"/>
+  <rect x="21" y="7" width="3" height="19" rx="1" fill="#ff6b4a"/>
+</svg>

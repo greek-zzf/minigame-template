@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <rect width="320" height="180" fill="#f3ecdf"/>
+  <g font-family="Georgia, serif" font-size="28" font-weight="700">
+    <rect x="22" y="48" width="44" height="44" rx="6" fill="#2457d6"/>
+    <text x="44" y="79" text-anchor="middle" fill="#fff">F</text>
+    <rect x="72" y="48" width="44" height="44" rx="6" fill="#e07a3d"/>
+    <text x="94" y="79" text-anchor="middle" fill="#1e2430">O</text>
+    <rect x="122" y="48" width="44" height="44" rx="6" fill="#5d6675"/>
+    <text x="144" y="79" text-anchor="middle" fill="#f3ecdf">L</text>
+    <rect x="172" y="48" width="44" height="44" rx="6" fill="#2457d6"/>
+    <text x="194" y="79" text-anchor="middle" fill="#fff">I</text>
+    <rect x="222" y="48" width="44" height="44" rx="6" fill="#efe6d6" stroke="#c9bfae"/>
+    <text x="244" y="79" text-anchor="middle" fill="#1e2430">O</text>
+  </g>
+  <text x="22" y="130" fill="#1e2430" font-family="Georgia, serif" font-size="28" font-weight="700">Folio</text>
+  <text x="22" y="156" fill="#2457d6" font-family="system-ui, sans-serif" font-size="15">Five letters, unlimited rounds</text>
+</svg>

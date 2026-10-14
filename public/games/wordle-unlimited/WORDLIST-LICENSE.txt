@@ -1,0 +1,24 @@
+Folio word list
+================
+
+Accepted guesses are five-letter words from ENABLE1, the Enhanced North
+American Benchmark Lexicon compiled by Alan Beale and M. Bryce. ENABLE1 is
+in the public domain.
+
+Source used at build time:
+https://github.com/dolph/dictionary/blob/master/enable1.txt
+
+Puzzle answers are a 2,500-word subset of those ENABLE1 words. The subset
+keeps words that also appear in commonly observed English usage (filtered
+with a public word-frequency ranking at build time) so solutions stay
+familiar. The frequency ranking itself is not redistributed; the file
+words.json contains only ENABLE1 headwords.
+
+A short list of slurs and vulgar terms was removed from both the answer
+list and the accepted-guess list so those words are not chosen as puzzles
+and are not treated as valid guesses.
+
+This list is not the New York Times Wordle word list. Folio is an unofficial
+game and is not affiliated with The New York Times or Wordle.
+
+Counts in this build: 2,500 answers, 8,616 accepted guesses.
