@@ -136,13 +136,14 @@ function blocks(list) {
     if (block.h3) return `<h3>${inline(block.h3)}</h3>`;
     if (block.p) return block.p.map(paragraph => `<p>${inline(paragraph)}</p>`).join('');
     if (block.ul) return `<ul>${block.ul.map(item => `<li>${inline(item)}</li>`).join('')}</ul>`;
+    if (block.ol) return `<ol>${block.ol.map(item => `<li>${inline(item)}</li>`).join('')}</ol>`;
     return '';
   }).join('\n');
 }
 
 function headingsOf(article) {
-  const heads = [article.howToTitle, article.rulesTitle, article.tipsTitle];
-  for (const key of ['howTo', 'rules', 'tips']) {
+  const heads = [article.howToTitle, article.rulesTitle, article.tipsTitle, article.compareTitle, article.faqTitle].filter(Boolean);
+  for (const key of ['howTo', 'rules', 'tips', 'compare', 'intro', 'more']) {
     for (const block of article[key] || []) if (block.h3) heads.push(block.h3);
   }
   return heads.join(' ').toLowerCase();
@@ -241,6 +242,7 @@ for (const code of LOCALES) {
       category: cat(view.category, code).name,
       tags: view.tags || [],
       short: view.short || '',
+      h1: view.h1 || '',
     };
   });
   const popular = games.filter(game => (game.popularity || 0) > 0).sort((a, b) => b.popularity - a.popularity || a.title.localeCompare(b.title));
@@ -296,7 +298,7 @@ ${dict.homeFaq.map(item => `<details><summary>${esc(item.q)}</summary><p>${esc(i
 const GAMES = ${json(searchData)};
 const q = document.getElementById('q');
 const hits = document.getElementById('hits');
-function hay(game){ return (game.title + ' ' + game.phrase + ' ' + game.category + ' ' + game.tags.join(' ') + ' ' + game.short).toLowerCase(); }
+function hay(game){ return (game.title + ' ' + game.h1 + ' ' + game.phrase + ' ' + game.category + ' ' + game.tags.join(' ') + ' ' + game.short).toLowerCase(); }
 q.addEventListener('input', () => {
   const query = q.value.trim().toLowerCase();
   hits.replaceChildren();
@@ -377,26 +379,35 @@ q.addEventListener('input', () => {
     const info = cat(view.category, code);
     const article = articles[view.slug];
     const urlPath = `/game/${view.slug}/`;
+    const pageH1 = view.h1 || view.title;
+    const pageTitle = view.seoTitle || `${view.title} – Play Free Online (Unlimited, No Download) | ${BRAND}`;
     const heads = headingsOf(article);
     for (const phrase of ['free', 'unlimited', 'online', 'no download']) {
       if (!heads.includes(phrase)) throw new Error(`${view.slug} heading missing “${phrase}”`);
     }
     if (!heads.includes(String(view.keyword || '').toLowerCase())) throw new Error(`${view.slug} heading missing keyword ${view.keyword}`);
     const how = `<section class="prose"><h2>${esc(article.howToTitle)}</h2>${blocks(article.howTo)}</section>`;
-    const rules = `<section class="prose"><h2>${esc(article.rulesTitle)}</h2>${blocks(article.rules)}</section>`;
-    const tips = `<section class="prose"><h2>${esc(article.tipsTitle)}</h2>${blocks(article.tips)}</section>`;
-    const faq = `<section class="prose" id="faq"><h2>${esc(dict.faq)}</h2>${article.faq.map(item => `<details><summary>${esc(item.q)}</summary><p>${esc(item.a)}</p></details>`).join('')}</section>`;
-    const editorial = how + rules + tips + faq;
+    const rules = article.rulesTitle ? `<section class="prose"><h2>${esc(article.rulesTitle)}</h2>${blocks(article.rules)}</section>` : '';
+    const tips = article.tipsTitle ? `<section class="prose"><h2>${esc(article.tipsTitle)}</h2>${blocks(article.tips)}</section>` : '';
+    const compare = article.compareTitle ? `<section class="prose"><h2>${esc(article.compareTitle)}</h2>${blocks(article.compare)}</section>` : '';
+    const faqTitle = article.faqTitle || dict.faq;
+    const faq = `<section class="prose" id="faq"><h2>${esc(faqTitle)}</h2>${article.faq.map(item => `<details><summary>${esc(item.q)}</summary><p>${esc(item.a)}</p></details>`).join('')}</section>`;
+    const more = article.moreTitle ? `<section class="prose" id="more"><h2>${esc(article.moreTitle)}</h2>${blocks(article.more)}</section>` : '';
+    const intro = article.intro ? `<section class="prose">${blocks(article.intro)}</section>` : '';
+    const editorial = intro + how + rules + tips + compare + faq + more;
     const count = wordCount(editorial);
     counts[view.slug] = count;
-    if (count < 1000 || count > 2000) throw new Error(`${view.slug} body is ${count} words`);
+    const guide = article.structure === 'guide';
+    if (guide) {
+      if (count < 1250 || count > 1550) throw new Error(`${view.slug} guide is ${count} words`);
+    } else if (count < 1000 || count > 2000) throw new Error(`${view.slug} body is ${count} words`);
     const others = games.filter(game => game.slug !== view.slug);
     const related = sortRelated(view, others).slice(0, 8);
     const newer = others.filter(game => addedOf(game) > addedOf(view)).sort((a, b) => addedOf(b).localeCompare(addedOf(a)));
     const trail = [
       { name: dict.home, href: loc(code, '/'), path: loc(code, '/') },
       { name: info.name, href: loc(code, `/category/${info.slug}/`), path: loc(code, `/category/${info.slug}/`) },
-      { name: view.title, path: loc(code, urlPath) },
+      { name: guide ? pageH1 : view.title, path: loc(code, urlPath) },
     ];
     const faqLd = {
       '@context': 'https://schema.org',
@@ -410,7 +421,7 @@ q.addEventListener('input', () => {
     add(urlPath, shell({
       code,
       urlPath,
-      title: view.seoTitle || `${view.title} – Play Free Online (Unlimited, No Download) | ${BRAND}`,
+      title: pageTitle,
       desc: view.short,
       image: view.thumb,
       imageWidth: 320,
@@ -437,7 +448,13 @@ q.addEventListener('input', () => {
         faqLd,
       ],
       body: `${crumbs(trail.map((item, index) => ({ name: item.name, href: index < trail.length - 1 ? item.href : '' })))}
-<h1>${esc(view.h1 || view.title)}</h1>
+${guide ? `<div class="player" id="player"><div class="frame ${esc(view.orientation || 'board')}" id="frame" style="background:${esc(view.frameBg || '#000')}"><iframe src="${esc(view.embed)}" title="${esc(view.title)}" allow="fullscreen; autoplay; gamepad"></iframe></div>
+<div class="bar"><button id="fs" type="button">${esc(dict.fullscreen)}</button></div></div>
+<h1>${esc(pageH1)}</h1>
+${article.subtitle ? `<p class="dek">${esc(article.subtitle)}</p>` : ''}
+${editorial}
+${view.disclaimer ? `<p class="disclaimer">${esc(view.disclaimer)}</p>` : ''}
+<p class="home-link"><a href="${loc(code, '/')}">Play other daily puzzles alongside ${esc(pageH1)} on the DLE HQ homepage</a></p>` : `<h1>${esc(pageH1)}</h1>
 <div class="player" id="player"><div class="frame ${esc(view.orientation || 'board')}" id="frame" style="background:${esc(view.frameBg || '#000')}"><iframe src="${esc(view.embed)}" title="${esc(view.title)}" allow="fullscreen; autoplay; gamepad"></iframe></div>
 <div class="bar"><button id="fs" type="button">${esc(dict.fullscreen)}</button></div></div>
 ${view.disclaimer ? `<p class="disclaimer">${esc(view.disclaimer)}</p>` : ''}
@@ -445,7 +462,7 @@ ${view.disclaimer ? `<p class="disclaimer">${esc(view.disclaimer)}</p>` : ''}
 ${editorial}
 <p class="tags"><a href="${loc(code, `/category/${info.slug}/`)}">More ${esc(info.name)} DLE games</a></p>
 ${related.length ? `<section id="related"><h2>${esc(dict.related)}</h2><div class="grid">${related.map(game => card(game, code)).join('')}</div></section>` : ''}
-${newer.length ? `<section id="fresh-games"><h2>${esc(dict.fresh)}</h2><p>${esc(dict.freshOlder)}</p><div class="grid">${newer.map(game => card(game, code)).join('')}</div></section>` : ''}
+${newer.length ? `<section id="fresh-games"><h2>${esc(dict.fresh)}</h2><p>${esc(dict.freshOlder)}</p><div class="grid">${newer.map(game => card(game, code)).join('')}</div></section>` : ''}`}
 <script>
 document.getElementById('fs').onclick=()=>{const p=document.getElementById('player'); if(document.fullscreenElement) document.exitFullscreen(); else (p.requestFullscreen||p.webkitRequestFullscreen).call(p)};
 </script>`,
@@ -458,7 +475,7 @@ document.getElementById('fs').onclick=()=>{const p=document.getElementById('play
     urlPath: '/about/',
     title: `About | ${BRAND}`,
     desc: dict.aboutParagraphs[0],
-    body: `<h1>${esc(dict.aboutPage)}</h1>${paragraphs('aboutParagraphs')}<p class="home-link"><a href="${loc(code, '/')}">The daily games themselves start on the DLE HQ homepage</a></p><p><a href="${loc(code, '/category/music/')}">Music DLE games</a> · <a href="${loc(code, '/game/songless-unlimited/')}">Play Songless Unlimited, the free music guessing game</a> · <a href="${loc(code, '/game/heardle/')}">Play Hookstep, the daily intro puzzle</a> · <a href="${loc(code, '/game/wordle-unlimited/')}">Play Folio, the unlimited five-letter word game</a></p>`,
+    body: `<h1>${esc(dict.aboutPage)}</h1>${paragraphs('aboutParagraphs')}<p class="home-link"><a href="${loc(code, '/')}">The daily games themselves start on the DLE HQ homepage</a></p><p><a href="${loc(code, '/category/music/')}">Music DLE games</a> · <a href="${loc(code, '/category/geography/')}">Geography DLE games</a> · <a href="${loc(code, '/game/songless-unlimited/')}">Play Songless Unlimited, the free music guessing game</a> · <a href="${loc(code, '/game/heardle/')}">Play Hookstep, the daily intro puzzle</a> · <a href="${loc(code, '/game/wordle-unlimited/')}">Play Folio, the unlimited five-letter word game</a> · <a href="${loc(code, '/game/globle/')}">Play Globle</a> · <a href="${loc(code, '/game/flagle/')}">Play Flagle</a></p>`,
   }));
   add('/privacy/', shell({
     code,
@@ -630,6 +647,9 @@ for (const game of games) {
   const page = fs.readFileSync(`${OUT}/game/${game.slug}.html`, 'utf8');
   if (!page.includes(`<h1>${game.h1 || game.title}</h1>`)) throw new Error('h1 ' + game.slug);
   if (!page.includes(`<title>${esc(game.seoTitle || `${game.title} – Play Free Online (Unlimited, No Download) | DLE HQ`)}</title>`)) throw new Error('game title ' + game.slug);
+  if (game.h1 && game.h1 !== game.title) {
+    if (!page.includes(`"name":"${game.title}"`) || !page.includes(`"alternateName":"${game.h1}"`)) throw new Error('schema name ' + game.slug);
+  }
   if (!page.includes('FAQPage') || !page.includes('BreadcrumbList')) throw new Error('schema ' + game.slug);
 }
 if (fs.existsSync(`${OUT}/games/snake`) || fs.existsSync(`${OUT}/games/2048`)) throw new Error('removed games still built');
@@ -648,6 +668,40 @@ expectCanonical(`${OUT}/about.html`, `${SITE}/about`);
 expectCanonical(`${OUT}/privacy.html`, `${SITE}/privacy`);
 for (const slug of catSlugs) expectCanonical(`${OUT}/category/${slug}.html`, `${SITE}/category/${slug}`);
 for (const game of games) expectCanonical(`${OUT}/game/${game.slug}.html`, `${SITE}/game/${game.slug}`);
+const freshHtml = home.slice(home.indexOf('id="fresh"'), home.indexOf('id="what"'));
+const popularHtml = home.slice(home.indexOf('id="popular"'), home.indexOf('id="fresh"'));
+for (const slug of ['globle', 'flagle']) {
+  if (!freshHtml.includes(`/game/${slug}`)) throw new Error('fresh finds missing ' + slug);
+  if (!popularHtml.includes(`/game/${slug}`)) throw new Error('popular missing ' + slug);
+  const page = fs.readFileSync(`${OUT}/game/${slug}.html`, 'utf8');
+  const h1 = slug === 'globle' ? 'Globle' : 'Flagle';
+  const other = slug === 'globle' ? 'flagle' : 'globle';
+  if (page.indexOf('<iframe') > page.indexOf(`<h1>${h1}</h1>`)) throw new Error('iframe should lead ' + slug);
+  for (const heading of [
+    `<h2>How to Play ${h1}</h2>`,
+    `<h2>${h1} Rules and Tips</h2>`,
+    `<h2>${h1} vs Wordle</h2>`,
+    '<h2>Frequently Asked Questions</h2>',
+    '<h2>More Geography DLE Games</h2>',
+  ]) {
+    if (!page.includes(heading)) throw new Error(`${slug} missing ${heading}`);
+  }
+  if (!page.includes('daily games like Wordle')) throw new Error('wordle phrase ' + slug);
+  if ((page.match(/<details>/g) || []).length !== 6) throw new Error('faq count ' + slug);
+  if (!page.includes(`href="/game/${other}"`)) throw new Error('cross link ' + slug);
+  for (const href of ['/game/songless-unlimited', '/game/wordle-unlimited', '/game/heardle', '/category/geography']) {
+    if (!page.includes(`href="${href}"`)) throw new Error(`${slug} missing ${href}`);
+  }
+  if (/globle-unlimited|geogrid/i.test(page)) throw new Error('unknown geography link ' + slug);
+  const moreAt = page.indexOf('More Geography DLE Games');
+  const disclaimerAt = page.indexOf('class="disclaimer"');
+  const homeAt = page.indexOf('class="home-link"');
+  if (!(moreAt < disclaimerAt && disclaimerAt < homeAt)) throw new Error('footer order ' + slug);
+}
+const geography = fs.readFileSync(`${OUT}/category/geography.html`, 'utf8');
+if (geography.includes('noindex')) throw new Error('geography should be indexable');
+if (!sitemap.includes('<loc>https://dlehq.com/category/geography</loc>')) throw new Error('geography sitemap');
+if (!geography.includes('/game/globle') || !geography.includes('/game/flagle')) throw new Error('geography listing');
 for (const match of sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)) {
   const path = match[1].slice(SITE.length);
   if (path !== '/' && path.endsWith('/')) throw new Error('sitemap trailing slash ' + match[1]);

@@ -74,7 +74,8 @@ h3 { font-size: 18px; margin: 18px 0 8px; }
 .card span { display: block; padding: 8px 10px 12px; font-weight: 650; font-size: 14px; }
 .prose { max-width: 44rem; }
 .prose p, .box p { margin: 0 0 12px; }
-.prose ul, .box ul { margin: 0 0 12px; padding-left: 1.2rem; }
+.prose ul, .prose ol, .box ul { margin: 0 0 12px; padding-left: 1.2rem; }
+.dek { color: var(--mut); font-size: 18px; margin: 0 0 8px; max-width: 44rem; }
 .prose a, .home-link a, .box a { text-underline-offset: 2px; }
 .disclaimer { background: #2a211c; border-left: 4px solid var(--coral); border-radius: 8px; padding: 10px 12px; margin: 12px 0; color: #ffe8df; }
 .home-link { color: var(--mut); }

@@ -53,5 +53,43 @@
     "popularity": 25,
     "keyword": "wordle unlimited",
     "disclaimer": "Unofficial game. Not affiliated with The New York Times or Wordle."
+  },
+  {
+    "slug": "globle",
+    "title": "Waymark",
+    "h1": "Globle",
+    "seoTitle": "Globle – Play Free Online (Unlimited, No Download) | DLE HQ",
+    "linkPhrase": "Play Waymark, the unlimited country distance game",
+    "category": "geography",
+    "tags": ["globle", "geography", "country", "unlimited"],
+    "embed": "/games/globle/index.html",
+    "thumb": "/thumbs/globle.svg",
+    "orientation": "board",
+    "frameBg": "#e4efe6",
+    "short": "Play Globle free online. Guess the mystery country from your geography knowledge — unlimited plays, no download, no daily limit. Start a new round any time.",
+    "added": "2026-10-14",
+    "released": "2026-10-14",
+    "popularity": 18,
+    "keyword": "globle",
+    "disclaimer": "Unofficial fan-made game. Not affiliated with Globle."
+  },
+  {
+    "slug": "flagle",
+    "title": "Bunting",
+    "h1": "Flagle",
+    "seoTitle": "Flagle – Play Free Daily Flag Game (No Download) | DLE HQ",
+    "linkPhrase": "Play Bunting, the six-try flag puzzle",
+    "category": "geography",
+    "tags": ["flagle", "geography", "flag", "country"],
+    "embed": "/games/flagle/index.html",
+    "thumb": "/thumbs/flagle.svg",
+    "orientation": "board",
+    "frameBg": "#f6f1e7",
+    "short": "Play Flagle free online. Guess the country from its flag in six tries, then take on the bonus rounds — unlimited plays, no download, no login.",
+    "added": "2026-10-14",
+    "released": "2026-10-14",
+    "popularity": 16,
+    "keyword": "flagle",
+    "disclaimer": "Unofficial fan-made game. Not affiliated with Flagle."
   }
 ]
