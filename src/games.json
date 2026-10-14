@@ -18,6 +18,8 @@
   {
     "slug": "heardle",
     "title": "Hookstep",
+    "h1": "Heardle",
+    "seoTitle": "Heardle – Play Free Daily Song Puzzle (Hookstep) | DLE HQ",
     "linkPhrase": "Play Hookstep, the daily intro puzzle",
     "category": "music",
     "tags": ["heardle", "music", "daily", "intro"],
@@ -35,6 +37,8 @@
   {
     "slug": "wordle-unlimited",
     "title": "Folio",
+    "h1": "Wordle Unlimited",
+    "seoTitle": "Wordle Unlimited – Play Free, No Download (Folio) | DLE HQ",
     "linkPhrase": "Play Folio, the unlimited five-letter word game",
     "category": "word",
     "tags": ["wordle", "word", "unlimited", "letters"],
