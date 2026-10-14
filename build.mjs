@@ -410,7 +410,7 @@ q.addEventListener('input', () => {
     add(urlPath, shell({
       code,
       urlPath,
-      title: `${view.title} – Play Free Online (Unlimited, No Download) | ${BRAND}`,
+      title: view.seoTitle || `${view.title} – Play Free Online (Unlimited, No Download) | ${BRAND}`,
       desc: view.short,
       image: view.thumb,
       imageWidth: 320,
@@ -420,6 +420,7 @@ q.addEventListener('input', () => {
           '@context': 'https://schema.org',
           '@type': 'VideoGame',
           name: view.title,
+          ...(view.h1 && view.h1 !== view.title ? { alternateName: view.h1 } : {}),
           description: view.short,
           url: SITE + loc(code, urlPath),
           image: SITE + view.thumb,
@@ -436,7 +437,7 @@ q.addEventListener('input', () => {
         faqLd,
       ],
       body: `${crumbs(trail.map((item, index) => ({ name: item.name, href: index < trail.length - 1 ? item.href : '' })))}
-<h1>${esc(view.title)}</h1>
+<h1>${esc(view.h1 || view.title)}</h1>
 <div class="player" id="player"><div class="frame ${esc(view.orientation || 'board')}" id="frame" style="background:${esc(view.frameBg || '#000')}"><iframe src="${esc(view.embed)}" title="${esc(view.title)}" allow="fullscreen; autoplay; gamepad"></iframe></div>
 <div class="bar"><button id="fs" type="button">${esc(dict.fullscreen)}</button></div></div>
 ${view.disclaimer ? `<p class="disclaimer">${esc(view.disclaimer)}</p>` : ''}
@@ -627,8 +628,8 @@ for (const game of games) {
     if (!script.includes(game.disclaimer) || !page.includes(game.disclaimer)) throw new Error('disclaimer missing ' + game.slug);
   }
   const page = fs.readFileSync(`${OUT}/game/${game.slug}.html`, 'utf8');
-  if (!page.includes(`<h1>${game.title}</h1>`)) throw new Error('h1 ' + game.slug);
-  if (!page.includes(`<title>${game.title} – Play Free Online (Unlimited, No Download) | DLE HQ</title>`)) throw new Error('game title ' + game.slug);
+  if (!page.includes(`<h1>${game.h1 || game.title}</h1>`)) throw new Error('h1 ' + game.slug);
+  if (!page.includes(`<title>${esc(game.seoTitle || `${game.title} – Play Free Online (Unlimited, No Download) | DLE HQ`)}</title>`)) throw new Error('game title ' + game.slug);
   if (!page.includes('FAQPage') || !page.includes('BreadcrumbList')) throw new Error('schema ' + game.slug);
 }
 if (fs.existsSync(`${OUT}/games/snake`) || fs.existsSync(`${OUT}/games/2048`)) throw new Error('removed games still built');
