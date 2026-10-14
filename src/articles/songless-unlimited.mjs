@@ -15,7 +15,7 @@ export default {
     { h3: 'What unlimited online play means' },
     { p: [
       'Unlimited here means there is no daily puzzle and no cap on rounds. The same lane can keep handing you songs for as long as you want to sit with it. Leaving a lane and opening another one starts a fresh run. The score and streak for the run you just left are cleared. The best streak saved on this device stays where it is. A best mark should survive curiosity, and a live streak should belong to the lane you are actually playing.',
-      'When you want a single song for the day instead of a lane, play [Hookstep, the daily intro puzzle](/game/heardle/). Hookstep is a separate board with its own name and colors, and it keeps one puzzle for the local day. Songless Unlimited stays the open-ended game. Both are listed with [Music DLE games](/category/music/), and the rest of the shelf is on the [DLE HQ homepage](/).',
+      'When you want a single song for the day instead of a lane, play [Hookstep, the daily intro puzzle](/game/heardle). Hookstep is a separate board with its own name and colors, and it keeps one puzzle for the local day. Songless Unlimited stays the open-ended game. Both are listed with [Music DLE games](/category/music), and the rest of the shelf is on the [DLE HQ homepage](/).',
     ]},
   ],
   rulesTitle: 'Songless Unlimited Rules for Every Online Round',

@@ -5,7 +5,7 @@ export default {
       'Hookstep is DLE HQ’s daily song puzzle, built in a heardle style: you hear a short intro, you guess the song, and each miss opens a longer piece of the same clip. The game has its own name, its own coral-and-navy board, and its own logo of six rising bars. Unofficial fan-made game. Not affiliated with Spotify or Heardle. Nothing on this page uses a Spotify login, a Spotify embed, or artwork taken from those products.',
       'The board above is the game. You can play today’s puzzle without opening another tab. A matching title solves it. If you only know the singer, that guess is marked close and still spends an attempt. Skip when the opening is silence or a sound you cannot place. There are six attempts. The clip lengths are one second, then two, four, seven, eleven, and sixteen.',
       'Today’s song is chosen from the local calendar date, so the same browser gets the same puzzle until midnight where you are. Refreshing the page does not roll a new daily song. When the result is saved, you can practice other songs on the same board. Practice does not erase the daily result. That is the “daily-ish” part: one official puzzle for the day, then more songs if you want them.',
-      'If you would rather pick a genre and keep a streak with no daily lock, [play Songless Unlimited, the free music guessing game](/game/songless-unlimited/). It is the older music page on this site and it lives in the same [Music DLE games](/category/music/) category. The wider shelf, including games outside music, starts on the [DLE HQ homepage](/).',
+      'If you would rather pick a genre and keep a streak with no daily lock, [play Songless Unlimited, the free music guessing game](/game/songless-unlimited). It is the older music page on this site and it lives in the same [Music DLE games](/category/music) category. The wider shelf, including games outside music, starts on the [DLE HQ homepage](/).',
     ]},
     { h3: 'A daily puzzle with no download' },
     { p: [
@@ -55,7 +55,7 @@ export default {
       'Headphones help on the first two lengths. They matter less once the clip reaches eleven seconds. On a phone, the fullscreen control on this page gives the board more room, and the rules stay the same. If you are done for the day, leave. The result will be here when you come back, until local midnight.',
     ]},
     { p: [
-      'Hookstep sits next to older music play on DLE HQ, especially [Songless Unlimited](/game/songless-unlimited/), which is the unlimited lane game rather than the daily one. If you want a puzzle that is not about music at all, the [DLE HQ homepage](/) lists what is actually playable, including newer pages while they are still in Fresh Finds. The music shelf itself is [Music DLE games](/category/music/).',
+      'Hookstep sits next to older music play on DLE HQ, especially [Songless Unlimited](/game/songless-unlimited), which is the unlimited lane game rather than the daily one. If you want a puzzle that is not about music at all, the [DLE HQ homepage](/) lists what is actually playable, including newer pages while they are still in Fresh Finds. The music shelf itself is [Music DLE games](/category/music).',
     ]},
   ],
   faq: [
