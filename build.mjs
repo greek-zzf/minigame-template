@@ -1,148 +1,506 @@
-// 零依赖静态站生成器：node build.mjs -> dist/
-// 可用 SITE_CONFIG=xxx.json node build.mjs 指定其它配置文件
-import fs from 'node:fs'; import path from 'node:path';
-const R = p => JSON.parse(fs.readFileSync(p, 'utf8'));
-const cfg = R(process.env.SITE_CONFIG || 'site.config.json');
-const games = R('src/games.json'), catSlugs = R('src/categories.json');
-const DEF = cfg.defaultLocale || 'en', LOCALES = cfg.locales || [DEF];
-const L = Object.fromEntries(LOCALES.map(l => [l, R(`locales/${l}.json`)]));
-const OUT = 'dist', U = cfg.siteUrl.replace(/\/$/, '');
-if (/example\.|localhost/.test(U)) console.warn(`⚠️  site.config.json siteUrl 仍是占位 (${U})：canonical/hreflang/sitemap 都会指向错误域名，上线前务必改成真实域名！`);
-// meta description 补齐：短文案 + 本语言的通用后缀（避免过短/只有一句话）
-const md = (s, l) => { s = String(s || '').trim(); const sx = L[l].metaSuffix || ''; return sx && s.length < 80 ? `${s} ${sx}` : s; };
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt = (s, v) => String(s).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? '');
-const pre = l => l === DEF ? '' : `/${l}`;                 // 默认语言在 /，其他语言用 /<lang>/ 前缀
-const loc = (l, p) => pre(l) + p;
-const tg = (g, l) => ({...g, ...(g.i18n?.[l] || {})});       // 游戏字段按语言覆盖，缺失回退默认语言
-const cat = (s, l) => ({slug: s, ...(L[l].categories?.[s] || L[DEF].categories?.[s] || {name: s, short: s, intro: ''})});
+// Static generator: node build.mjs -> dist/
+// English-only DLE HQ hub. Ads are not rendered.
+import fs from 'node:fs';
+import path from 'node:path';
 
-fs.rmSync(OUT, {recursive: true, force: true}); fs.cpSync('public', OUT, {recursive: true});
+const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+const cfg = readJson(process.env.SITE_CONFIG || 'site.config.json');
+const games = readJson('src/games.json');
+const catSlugs = readJson('src/categories.json');
+const guides = readJson('src/guides.json');
+const DEF = cfg.defaultLocale || 'en';
+const LOCALES = cfg.locales || [DEF];
+const L = Object.fromEntries(LOCALES.map(code => [code, readJson(`locales/${code}.json`)]));
+const OUT = 'dist';
+const SITE = cfg.siteUrl.replace(/\/$/, '');
+const FRESH_DAYS = cfg.freshDays ?? 5;
+const BRAND = cfg.siteName;
+
+const articles = {};
+for (const game of games) {
+  articles[game.slug] = (await import(`./src/articles/${game.slug}.mjs`)).default;
+}
+
+fs.rmSync(OUT, { recursive: true, force: true });
+fs.cpSync('public', OUT, { recursive: true });
 fs.copyFileSync('src/style.css', `${OUT}/style.css`);
-const write = (p, html) => { const f = path.join(OUT, p); fs.mkdirSync(path.dirname(f), {recursive: true}); fs.writeFileSync(f, html); };
 
-// ---------- 广告：仅在启用 Google Ad Manager（GPT）时输出。未启用则不放广告位，避免空占位。 ----------
-const GAM = cfg.gam?.enabled ? cfg.gam : null;
-function adHead(slotsUsed) {
-  if (!GAM) return '';
-  const defs = slotsUsed.filter(s => GAM.slots[s]).map(s =>
-    `googletag.defineSlot(${JSON.stringify(`${GAM.adUnitPrefix.replace(/\/$/, '')}/${GAM.slots[s].unit}`)},${JSON.stringify(GAM.slots[s].sizes)},'gpt-${s}').addService(googletag.pubads());`).join('');
-  return `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" crossorigin="anonymous"></script>
-<script>window.googletag=window.googletag||{cmd:[]};googletag.cmd.push(function(){${defs}googletag.pubads().enableSingleRequest();googletag.pubads().collapseEmptyDivs();googletag.enableServices();});</script>`;
+const write = (rel, html) => {
+  if (/[\u4e00-\u9fff]/.test(html)) throw new Error('Chinese text in ' + rel);
+  const file = path.join(OUT, rel);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, html);
+};
+
+const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+}[ch]));
+const json = value => JSON.stringify(value).replace(/</g, '\\u003c');
+const inline = value => esc(value).replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, text, href) => `<a href="${href}">${text}</a>`);
+const pre = code => code === DEF ? '' : `/${code}`;
+const loc = (code, urlPath) => pre(code) + urlPath;
+const gameText = (game, code) => ({ ...game, ...(game.i18n?.[code] || {}) });
+const cat = (slug, code) => ({ slug, ...(L[code].categories?.[slug] || L[DEF].categories?.[slug] || { name: slug, short: slug, intro: '' }) });
+const addedOf = game => game.added || game.released;
+const gamesIn = slug => games.filter(game => game.category === slug);
+const indexableCats = () => catSlugs.filter(slug => gamesIn(slug).length >= 2);
+
+function addDays(iso, days) {
+  const [year, month, day] = iso.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
-function ad(slot, cls, t) {
-  if (!(GAM && GAM.slots[slot])) return '';
-  const minH = Math.min(...GAM.slots[slot].sizes.map(s => s[1]));
-  return `<div class="adwrap ${cls}"><small>${esc(t.adLabel)}</small><div id="gpt-${slot}" style="min-height:${minH}px"><script>googletag.cmd.push(function(){googletag.display('gpt-${slot}')})</script></div></div>`;
+const TODAY = new Date().toISOString().slice(0, 10);
+function freshUntil(game) {
+  const min = addDays(addedOf(game), FRESH_DAYS);
+  return game.freshUntil && game.freshUntil > min ? game.freshUntil : min;
+}
+const isFresh = game => TODAY <= freshUntil(game);
+
+function wordCount(html) {
+  const text = String(html)
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&#39;|&apos;|&#x27;/gi, "'")
+    .replace(/&(?:amp|lt|gt|quot);/g, ' ')
+    .replace(/[’']/g, '')
+    .replace(/[^A-Za-z0-9-]+/g, ' ')
+    .trim();
+  return text ? text.split(/\s+/).filter(Boolean).length : 0;
 }
 
-const card = (g, l) => { g = tg(g, l); return `<a class="card" href="${loc(l, `/game/${g.slug}/`)}"><img src="${g.thumb}" alt="${esc(g.title)}" loading="lazy" width="320" height="180"><span>${esc(g.title)}</span></a>`; };
+function blocks(list) {
+  return (list || []).map(block => {
+    if (block.h3) return `<h3>${inline(block.h3)}</h3>`;
+    if (block.p) return block.p.map(paragraph => `<p>${inline(paragraph)}</p>`).join('');
+    if (block.ul) return `<ul>${block.ul.map(item => `<li>${inline(item)}</li>`).join('')}</ul>`;
+    return '';
+  }).join('\n');
+}
 
-function page({l, title, desc, p, body, ld = [], image, slots = [], noindex = false}) {
-  const t = L[l], url = U + loc(l, p), img = U + (image || '/favicon.svg');
-  const alts = LOCALES.map(x => `<link rel="alternate" hreflang="${L[x].htmlLang}" href="${U}${loc(x, p)}">`).join('')
-    + `<link rel="alternate" hreflang="x-default" href="${U}${loc(DEF, p)}">`;
-  const sw = LOCALES.length > 1 ? `<div class="lang" aria-label="${esc(t.language)}">${LOCALES.map(x =>
-    x === l ? `<b>${esc(L[x].langName)}</b>` : `<a hreflang="${L[x].htmlLang}" lang="${L[x].htmlLang}" href="${loc(x, p)}">${esc(L[x].langName)}</a>`).join(' · ')}</div>` : '';
-  return `<!doctype html><html lang="${t.htmlLang}"><head><meta charset="utf-8">
+function headingsOf(article) {
+  const heads = [article.howToTitle, article.rulesTitle, article.tipsTitle];
+  for (const key of ['howTo', 'rules', 'tips']) {
+    for (const block of article[key] || []) if (block.h3) heads.push(block.h3);
+  }
+  return heads.join(' ').toLowerCase();
+}
+
+function card(game, code) {
+  const view = gameText(game, code);
+  const phrase = view.linkPhrase || `Play ${view.title}`;
+  return `<a class="card" href="${loc(code, `/game/${view.slug}/`)}"><img src="${view.thumb}" alt="" width="320" height="180" loading="lazy"><span>${esc(phrase)}</span></a>`;
+}
+
+function crumbs(items) {
+  return `<nav class="crumb" aria-label="Breadcrumb"><ol>${items.map(item => `<li>${item.href ? `<a href="${esc(item.href)}">${esc(item.name)}</a>` : `<span aria-current="page">${esc(item.name)}</span>`}</li>`).join('')}</ol></nav>`;
+}
+
+function breadcrumbLd(items) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: SITE + item.path,
+    })),
+  };
+}
+
+function sortRelated(current, list) {
+  return list.slice().sort((a, b) => {
+    const aCat = a.category === current.category ? 0 : 1;
+    const bCat = b.category === current.category ? 0 : 1;
+    if (aCat !== bCat) return aCat - bCat;
+    const byDate = addedOf(a).localeCompare(addedOf(b));
+    return byDate || a.title.localeCompare(b.title);
+  });
+}
+
+function shell({ code, title, desc, urlPath, body, ld = [], image, noindex = false }) {
+  const dict = L[code];
+  const url = SITE + loc(code, urlPath);
+  const img = SITE + (image || '/favicon.svg');
+  const alternates = LOCALES.map(item => `<link rel="alternate" hreflang="${L[item].htmlLang}" href="${SITE}${loc(item, urlPath)}">`).join('')
+    + `<link rel="alternate" hreflang="x-default" href="${SITE}${loc(DEF, urlPath)}">`;
+  const footerCats = catSlugs.map(slug => {
+    const info = cat(slug, code);
+    return `<a href="${loc(code, `/category/${slug}/`)}">${esc(info.name)} DLE games</a>`;
+  }).join('');
+  const footerGames = games.map(game => {
+    const view = gameText(game, code);
+    return `<a href="${loc(code, `/game/${view.slug}/`)}">${esc(view.linkPhrase || `Play ${view.title}`)}</a>`;
+  }).join('');
+  const analytics = cfg.gaId
+    ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${cfg.gaId}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${cfg.gaId}')</script>`
+    : '';
+  return `<!doctype html><html lang="${dict.htmlLang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title><meta name="description" content="${esc(desc)}">
-${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${url}">${alts}`}<link rel="icon" href="/favicon.svg">
-<meta property="og:type" content="website"><meta property="og:locale" content="${t.ogLocale}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${img}"><meta name="twitter:card" content="summary_large_image">
+${noindex ? '<meta name="robots" content="noindex, follow">' : `<link rel="canonical" href="${url}">${alternates}`}<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website"><meta property="og:locale" content="${dict.ogLocale}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${img}"><meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/style.css">
-${adHead(slots)}
-${cfg.gaId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${cfg.gaId}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${cfg.gaId}')</script>` : ''}
-${ld.map(o => `<script type="application/ld+json">${JSON.stringify(o)}</script>`).join('\n')}
-</head><body${GAM ? ' data-ads="gam"' : ''}><header><div class="wrap"><a class="logo" href="${loc(l, '/')}">🎮 ${esc(cfg.siteName)}</a><nav>${catSlugs.map(s => `<a href="${loc(l, `/category/${s}/`)}">${esc(cat(s, l).short)}</a>`).join('')}</nav>${sw}</div></header>
-<main class="wrap">${body}</main>
-<footer><div class="wrap">© ${new Date().getFullYear()} ${esc(cfg.siteName)} · <a href="${loc(l, '/about/')}">${esc(t.aboutPage)}</a> · <a href="${loc(l, '/privacy/')}">${esc(t.privacyPage)}</a> · ${esc(t.footer)}</div></footer></body></html>`;
+${analytics}
+${ld.map(entry => `<script type="application/ld+json">${json(entry)}</script>`).join('\n')}
+</head><body>
+<a class="skip" href="#content">Skip to content</a>
+<header><div class="wrap"><a class="logo" href="${loc(code, '/')}">${esc(BRAND)}</a><nav aria-label="Primary"><a href="${loc(code, '/#categories')}">Categories</a><a href="${loc(code, '/#popular')}">Popular</a><a href="${loc(code, '/about/')}">${esc(dict.aboutPage)}</a></nav></div></header>
+<main id="content" class="wrap">${body}</main>
+<footer><div class="wrap foot">
+<div><strong>${esc(BRAND)}</strong><p><a href="${loc(code, '/')}">Play free daily puzzle games on the DLE HQ homepage</a></p><p><a href="${loc(code, '/about/')}">${esc(dict.aboutPage)}</a> · <a href="${loc(code, '/privacy/')}">${esc(dict.privacyPage)}</a></p><p>© ${new Date().getFullYear()} ${esc(BRAND)}. ${esc(dict.footer)}</p></div>
+<nav aria-label="Categories"><b>Categories</b>${footerCats}</nav>
+<nav aria-label="Games"><b>Games</b>${footerGames}</nav>
+</div></footer></body></html>`;
 }
 
-const paths = [];
-for (const l of LOCALES) {
-  const t = L[l], v = {site: cfg.siteName};
-  const add = (p, html) => { write(loc(l, p).replace(/^\//, '') + (p.endsWith('/') ? 'index.html' : ''), html); };
-  // 首页
-  add('/', page({l, p: '/', title: `${cfg.siteName} – ${t.tagline}`, desc: t.description, slots: ['top'],
-    ld: [{'@context':'https://schema.org','@type':'WebSite',name:cfg.siteName,url:U+loc(l,'/'),inLanguage:t.htmlLang}],
-    body: `${ad('top','ad-top',t)}<h1>${esc(t.tagline)}</h1><div class="grid">${games.map(g => card(g, l)).join('')}</div>
-    ${catSlugs.map(s => { const c = cat(s, l), li = games.filter(g => g.category === s); return li.length ? `<h2><a href="${loc(l, `/category/${s}/`)}">${esc(c.name)} »</a></h2><div class="grid">${li.map(g => card(g, l)).join('')}</div>` : ''; }).join('')}
-    <div class="box"><h2>${esc(fmt(t.playFreeOn, v))}</h2><p>${esc(t.description)}</p></div>`}));
-  // 分类页
-  for (const s of catSlugs) {
-    const c = cat(s, l), li = games.filter(g => g.category === s), p = `/category/${s}/`;
-    add(p, page({l, p, title: fmt(t.catTitle, {...v, name: c.name}), desc: md(c.intro, l), slots: ['top'],
-      ld: [{'@context':'https://schema.org','@type':'CollectionPage',name:c.name,url:U+loc(l,p),inLanguage:t.htmlLang,
-        mainEntity:{'@type':'ItemList',itemListElement:li.map((g,i)=>({'@type':'ListItem',position:i+1,url:U+loc(l,`/game/${g.slug}/`),name:tg(g,l).title}))}}],
-      body: `<div class="crumb"><a href="${loc(l,'/')}">${esc(t.home)}</a> › ${esc(c.name)}</div><h1>${esc(c.name)}</h1><p>${esc(c.intro)}</p>${ad('top','ad-top',t)}
-      <div class="grid">${li.map(g => card(g, l)).join('') || `<p>${esc(t.comingSoon)}</p>`}</div>`}));
-  }
-  // 游戏页
-  for (const g0 of games) {
-    const g = tg(g0, l), c = cat(g.category, l), p = `/game/${g.slug}/`;
-    const rel = games.filter(x => x.slug !== g.slug).sort((a,b) => (b.category===g.category) - (a.category===g.category)).slice(0, 12);
-    const tv = {...v, title: g.title};
-    const aboutHtml = (Array.isArray(g.about) && g.about.length ? g.about : [g.description]).map(x => `<p>${esc(x)}</p>`).join('');
-    const tipsHtml = Array.isArray(g.tips) && g.tips.length ? `<h2>${esc(t.tips || 'Tips')}</h2><ul>${g.tips.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
-    const frameClass = g.orientation === 'square' ? 'square' : g.orientation === 'tall' ? 'tall' : '';
-    const headline = g.headline || g.title;
-    const ld = [
-      {'@context':'https://schema.org','@type':'VideoGame',name:g.title,description:g.short,url:U+loc(l,p),image:U+g.thumb,genre:c.name,inLanguage:t.htmlLang,
-        gamePlatform:['Web browser','PC','Mobile'],applicationCategory:'Game',operatingSystem:'Any',datePublished:g.released,
-        offers:{'@type':'Offer',price:'0',priceCurrency:'USD'},publisher:{'@type':'Organization',name:cfg.siteName}},
-      {'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[
-        {'@type':'ListItem',position:1,name:t.home,item:U+loc(l,'/')},{'@type':'ListItem',position:2,name:c.name,item:U+loc(l,`/category/${c.slug}/`)},{'@type':'ListItem',position:3,name:g.title,item:U+loc(l,p)}]},
-    ];
-    if (g.faq?.length) ld.push({'@context':'https://schema.org','@type':'FAQPage',mainEntity:g.faq.map(f=>({'@type':'Question',name:f.q,acceptedAnswer:{'@type':'Answer',text:f.a}}))});
-    add(p, page({l, p, title: fmt(t.gameTitle, tv), desc: md(g.short, l), ld, image: g.thumb, slots: ['belowGame','sidebar'], body: `
-<div class="crumb"><a href="${loc(l,'/')}">${esc(t.home)}</a> › <a href="${loc(l,`/category/${c.slug}/`)}">${esc(c.name)}</a> › ${esc(g.title)}</div>
-<div class="layout"><div>
- <div class="player" id="player"><div class="frame ${frameClass}" id="frame">
-  <div class="cover" id="cover"><img src="${g.thumb}" alt="${esc(g.title)}" width="160" height="90" fetchpriority="high"><button class="play">${esc(t.playNow)}</button></div></div>
-  <div class="bar"><h1>${esc(headline)}</h1><button id="fs">${esc(t.fullscreen)}</button></div></div>
- ${ad('belowGame','ad-in',t)}
- <section class="box"><h2>${esc(fmt(t.about, tv))}</h2>${aboutHtml}
-  <h2>${esc(fmt(t.howToPlay, tv))}</h2><ul>${g.controls.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
-  ${tipsHtml}
-  <div class="tags">${g.tags.map(x=>`<a href="${loc(l,`/category/${c.slug}/`)}">#${esc(x)}</a>`).join('')}</div></section>
- ${g.faq?.length ? `<section class="box"><h2>${esc(t.faq)}</h2>${g.faq.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('')}</section>` : ''}
-</div><aside class="side">${ad('sidebar','ad-side',t)}<h2>${esc(t.similar)}</h2><div class="grid">${rel.map(x => card(x, l)).join('')}</div></aside></div>
+const counts = {};
+for (const code of LOCALES) {
+  const dict = L[code];
+  const add = (urlPath, html) => {
+    const rel = loc(code, urlPath).replace(/^\//, '');
+    write(rel + (urlPath.endsWith('/') ? 'index.html' : ''), html);
+  };
+  const featured = games.find(game => game.featured) || games[0];
+  const featuredView = gameText(featured, code);
+  const searchData = games.map(game => {
+    const view = gameText(game, code);
+    return {
+      title: view.title,
+      phrase: view.linkPhrase || `Play ${view.title}`,
+      href: loc(code, `/game/${view.slug}/`),
+      thumb: view.thumb,
+      category: cat(view.category, code).name,
+      tags: view.tags || [],
+      short: view.short || '',
+    };
+  });
+  const popular = games.filter(game => (game.popularity || 0) > 0).sort((a, b) => b.popularity - a.popularity || a.title.localeCompare(b.title));
+  const fresh = games.filter(isFresh).sort((a, b) => addedOf(b).localeCompare(addedOf(a)));
+  const guideHtml = guides.length
+    ? `<section id="guides"><h2>${esc(dict.guides)}</h2><ul>${guides.map(guide => `<li><a href="${esc(guide.href)}">${esc(guide.title)}</a>${guide.summary ? ` — ${esc(guide.summary)}` : ''}</li>`).join('')}</ul></section>`
+    : '';
+  const homeFaqLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: dict.homeFaq.map(item => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  };
+  add('/', shell({
+    code,
+    urlPath: '/',
+    title: `${BRAND} – Daily Games Like Wordle: Play Free Unlimited Puzzle Games`,
+    desc: dict.description,
+    ld: [
+      { '@context': 'https://schema.org', '@type': 'WebSite', name: BRAND, url: SITE + loc(code, '/'), inLanguage: dict.htmlLang },
+      homeFaqLd,
+    ],
+    body: `<h1>${esc(dict.homeH1)}</h1>
+<p class="lead">${esc(dict.homeLead)}</p>
+<form class="search" role="search" action="#" onsubmit="return false">
+<label for="q">${esc(dict.searchLabel)}</label>
+<input id="q" name="q" type="search" placeholder="${esc(dict.searchPlaceholder)}" autocomplete="off">
+</form>
+<div id="hits" class="hits" hidden></div>
+<section class="featured" id="featured">
+<h2>${esc(dict.featured)}</h2>
+<p>${esc(featuredView.title)} is embedded below so you can play it on this page. The longer guide is <a href="${loc(code, `/game/${featuredView.slug}/`)}">${esc(featuredView.linkPhrase)}</a>.</p>
+<div class="player"><div class="frame ${esc(featuredView.orientation || 'board')}" style="background:${esc(featuredView.frameBg || '#000')}"><iframe src="${esc(featuredView.embed)}" title="${esc(featuredView.title)}" allow="fullscreen; autoplay; gamepad"></iframe></div></div>
+</section>
+<section id="categories"><h2>${esc(dict.browse)}</h2>
+<div class="cats">${catSlugs.map(slug => {
+    const info = cat(slug, code);
+    const count = gamesIn(slug).length;
+    return `<a class="catcard" href="${loc(code, `/category/${slug}/`)}"><b>${esc(info.name)}</b><span>${count} ${count === 1 ? 'game' : 'games'}</span><p>${esc(info.intro)}</p></a>`;
+  }).join('')}</div></section>
+<section id="popular"><h2>${esc(dict.popular)}</h2><div class="grid">${popular.map(game => card(game, code)).join('')}</div></section>
+<section id="fresh"><h2>${esc(dict.fresh)}</h2><p>${esc(dict.freshNote)}</p><div class="grid">${fresh.map(game => card(game, code)).join('') || `<p>${esc(dict.freshEmpty)}</p>`}</div></section>
+${guideHtml}
+<section class="box" id="what"><h2>${esc(dict.whatTitle)}</h2>
+${dict.whatParagraphs.map(paragraph => `<p>${esc(paragraph)}</p>`).join('')}
+<h2>${esc(dict.faq)}</h2>
+${dict.homeFaq.map(item => `<details><summary>${esc(item.q)}</summary><p>${esc(item.a)}</p></details>`).join('')}
+</section>
 <script>
-const cover=document.getElementById('cover'),frame=document.getElementById('frame');
-cover.onclick=()=>{const f=document.createElement('iframe');f.src=${JSON.stringify(g.embed + (g.embed.includes('?') ? '&' : '?') + 'lang=' + l)};f.allow='fullscreen; autoplay; gamepad';f.title=${JSON.stringify(g.title)};frame.appendChild(f);cover.remove();setTimeout(()=>f.focus(),100)};
-document.getElementById('fs').onclick=()=>{const p=document.getElementById('player');if(document.fullscreenElement)document.exitFullscreen();else (p.requestFullscreen||p.webkitRequestFullscreen).call(p)};
-</script>`}));
+const GAMES = ${json(searchData)};
+const q = document.getElementById('q');
+const hits = document.getElementById('hits');
+function hay(game){ return (game.title + ' ' + game.phrase + ' ' + game.category + ' ' + game.tags.join(' ') + ' ' + game.short).toLowerCase(); }
+q.addEventListener('input', () => {
+  const query = q.value.trim().toLowerCase();
+  hits.replaceChildren();
+  if (!query) { hits.hidden = true; return; }
+  hits.hidden = false;
+  const matched = GAMES.filter(game => hay(game).includes(query));
+  const heading = document.createElement('h2');
+  heading.textContent = ${JSON.stringify(dict.searchResults)};
+  hits.append(heading);
+  if (!matched.length) {
+    const empty = document.createElement('p');
+    empty.textContent = ${JSON.stringify(dict.searchEmpty)};
+    hits.append(empty);
+    return;
   }
-  for (const [slug, k, txt] of [['about','aboutPage','aboutText'],['privacy','privacyPage','privacyText']])
-    add(`/${slug}/`, page({l, p: `/${slug}/`, title: `${t[k]} | ${cfg.siteName}`, desc: md(fmt(t[txt], v), l), body: `<h1>${esc(t[k])}</h1><p>${esc(fmt(t[txt], v))}</p>`}));
-  if (l !== DEF) write(`${l}/404.html`, page({l, p: '/404', title: `404 | ${cfg.siteName}`, desc: t.notFound, noindex: true, body: `<h1>404</h1><p>${esc(t.notFound)} <a href="${loc(l,'/')}">${esc(t.backHome)}</a></p>`}));
-}
-const t0 = L[DEF];
-write('404.html', page({l: DEF, p: '/404', title: `404 | ${cfg.siteName}`, desc: t0.notFound, noindex: true, body: `<h1>404</h1><p>${esc(t0.notFound)} <a href="/">${esc(t0.backHome)}</a></p><div class="grid">${games.map(g => card(g, DEF)).join('')}</div>`}));
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  for (const game of matched) {
+    const link = document.createElement('a');
+    link.className = 'card';
+    link.href = game.href;
+    const img = document.createElement('img');
+    img.src = game.thumb; img.alt = ''; img.width = 320; img.height = 180;
+    const label = document.createElement('span');
+    label.textContent = game.phrase;
+    link.append(img, label);
+    grid.append(link);
+  }
+  hits.append(grid);
+});
+</script>`,
+  }));
 
-// sitemap：每个 URL 带 xhtml:link hreflang 互指（Google 推荐做法）
-const today = new Date().toISOString().slice(0, 10);
-const gmod = g => g.updated || g.released || today, latest = games.map(gmod).sort().pop() || today;
-const lastmod = p => { const g = games.find(x => p === `/game/${x.slug}/`); return g ? gmod(g) : latest; };
-const base = ['/', ...catSlugs.map(s => `/category/${s}/`), ...games.map(g => `/game/${g.slug}/`), '/about/', '/privacy/'];
-const entries = LOCALES.flatMap(l => base.map(p => `<url><loc>${U}${loc(l, p)}</loc><lastmod>${lastmod(p)}</lastmod>${
-  LOCALES.map(x => `<xhtml:link rel="alternate" hreflang="${L[x].htmlLang}" href="${U}${loc(x, p)}"/>`).join('')}<xhtml:link rel="alternate" hreflang="x-default" href="${U}${p}"/></url>`));
-write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${entries.join('\n')}\n</urlset>\n`);
-write('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${U}/sitemap.xml\n`);
-// 旧 /zh/ 地址 301 到对应英文页。dist/_redirects 由 Cloudflare Pages 与 Netlify 读取；静态规则在前，通配在后。
-const redirs = ['# Former Chinese URLs', '/zh / 301', '/zh/ / 301', '/zh/index.html / 301'];
-for (const p of base) {
-  if (p === '/') continue;
-  redirs.push(`/zh${p} ${p} 301`);
-  redirs.push(`/zh${p.replace(/\/$/, '')} ${p} 301`);
+  for (const slug of catSlugs) {
+    const info = cat(slug, code);
+    const list = gamesIn(slug);
+    const urlPath = `/category/${slug}/`;
+    const thin = list.length < 2;
+    const trail = [
+      { name: dict.home, href: loc(code, '/'), path: loc(code, '/') },
+      { name: info.name, path: loc(code, urlPath) },
+    ];
+    add(urlPath, shell({
+      code,
+      urlPath,
+      noindex: thin,
+      title: `${info.name} DLE Games – Play Free Daily ${info.name} Puzzles | ${BRAND}`,
+      desc: info.intro,
+      ld: [
+        breadcrumbLd(trail),
+        {
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: `${info.name} DLE Games`,
+          url: SITE + loc(code, urlPath),
+          inLanguage: dict.htmlLang,
+          mainEntity: {
+            '@type': 'ItemList',
+            itemListElement: list.map((game, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              url: SITE + loc(code, `/game/${game.slug}/`),
+              name: gameText(game, code).title,
+            })),
+          },
+        },
+      ],
+      body: `${crumbs(trail.map((item, index) => ({ name: item.name, href: index < trail.length - 1 ? item.href : '' })))}
+<h1>${esc(info.name)} DLE Games</h1>
+<p>${esc(info.intro)}</p>
+<p class="home-link"><a href="${loc(code, '/')}">More daily puzzles beyond ${esc(info.name)} are on the DLE HQ homepage</a></p>
+<div class="grid">${list.map(game => card(game, code)).join('') || `<p>${esc(dict.emptyCategory)}</p>`}</div>`,
+    }));
+  }
+
+  for (const source of games) {
+    const view = gameText(source, code);
+    const info = cat(view.category, code);
+    const article = articles[view.slug];
+    const urlPath = `/game/${view.slug}/`;
+    const heads = headingsOf(article);
+    for (const phrase of ['free', 'unlimited', 'online', 'no download']) {
+      if (!heads.includes(phrase)) throw new Error(`${view.slug} heading missing “${phrase}”`);
+    }
+    if (!heads.includes(String(view.keyword || '').toLowerCase())) throw new Error(`${view.slug} heading missing keyword ${view.keyword}`);
+    const how = `<section class="prose"><h2>${esc(article.howToTitle)}</h2>${blocks(article.howTo)}</section>`;
+    const rules = `<section class="prose"><h2>${esc(article.rulesTitle)}</h2>${blocks(article.rules)}</section>`;
+    const tips = `<section class="prose"><h2>${esc(article.tipsTitle)}</h2>${blocks(article.tips)}</section>`;
+    const faq = `<section class="prose" id="faq"><h2>${esc(dict.faq)}</h2>${article.faq.map(item => `<details><summary>${esc(item.q)}</summary><p>${esc(item.a)}</p></details>`).join('')}</section>`;
+    const editorial = how + rules + tips + faq;
+    const count = wordCount(editorial);
+    counts[view.slug] = count;
+    if (count < 1000 || count > 2000) throw new Error(`${view.slug} body is ${count} words`);
+    const others = games.filter(game => game.slug !== view.slug);
+    const related = sortRelated(view, others).slice(0, 8);
+    const newer = others.filter(game => addedOf(game) > addedOf(view)).sort((a, b) => addedOf(b).localeCompare(addedOf(a)));
+    const trail = [
+      { name: dict.home, href: loc(code, '/'), path: loc(code, '/') },
+      { name: info.name, href: loc(code, `/category/${info.slug}/`), path: loc(code, `/category/${info.slug}/`) },
+      { name: view.title, path: loc(code, urlPath) },
+    ];
+    const faqLd = {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: article.faq.map(item => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      })),
+    };
+    add(urlPath, shell({
+      code,
+      urlPath,
+      title: `${view.title} – Play Free Online (Unlimited, No Download) | ${BRAND}`,
+      desc: view.short,
+      image: view.thumb,
+      ld: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'VideoGame',
+          name: view.title,
+          description: view.short,
+          url: SITE + loc(code, urlPath),
+          image: SITE + view.thumb,
+          genre: info.name,
+          inLanguage: dict.htmlLang,
+          gamePlatform: ['Web browser'],
+          applicationCategory: 'Game',
+          operatingSystem: 'Any',
+          datePublished: view.released || view.added,
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+          publisher: { '@type': 'Organization', name: BRAND },
+        },
+        breadcrumbLd(trail),
+        faqLd,
+      ],
+      body: `${crumbs(trail.map((item, index) => ({ name: item.name, href: index < trail.length - 1 ? item.href : '' })))}
+<h1>${esc(view.title)}</h1>
+<div class="player" id="player"><div class="frame ${esc(view.orientation || 'board')}" id="frame" style="background:${esc(view.frameBg || '#000')}"><iframe src="${esc(view.embed)}" title="${esc(view.title)}" allow="fullscreen; autoplay; gamepad"></iframe></div>
+<div class="bar"><button id="fs" type="button">${esc(dict.fullscreen)}</button></div></div>
+${view.disclaimer ? `<p class="disclaimer">${esc(view.disclaimer)}</p>` : ''}
+<p class="home-link"><a href="${loc(code, '/')}">Play other daily puzzles alongside ${esc(view.title)} on the DLE HQ homepage</a></p>
+${editorial}
+<p class="tags"><a href="${loc(code, `/category/${info.slug}/`)}">More ${esc(info.name)} DLE games</a></p>
+${related.length ? `<section id="related"><h2>${esc(dict.related)}</h2><div class="grid">${related.map(game => card(game, code)).join('')}</div></section>` : ''}
+${newer.length ? `<section id="fresh-games"><h2>${esc(dict.fresh)}</h2><p>${esc(dict.freshOlder)}</p><div class="grid">${newer.map(game => card(game, code)).join('')}</div></section>` : ''}
+<script>
+document.getElementById('fs').onclick=()=>{const p=document.getElementById('player'); if(document.fullscreenElement) document.exitFullscreen(); else (p.requestFullscreen||p.webkitRequestFullscreen).call(p)};
+</script>`,
+    }));
+  }
+
+  const paragraphs = (key) => (dict[key] || []).map(paragraph => `<p>${inline(paragraph)}</p>`).join('');
+  add('/about/', shell({
+    code,
+    urlPath: '/about/',
+    title: `About | ${BRAND}`,
+    desc: dict.aboutParagraphs[0],
+    body: `<h1>${esc(dict.aboutPage)}</h1>${paragraphs('aboutParagraphs')}<p class="home-link"><a href="${loc(code, '/')}">The daily games themselves start on the DLE HQ homepage</a></p><p><a href="${loc(code, '/category/music/')}">Music DLE games</a> · <a href="${loc(code, '/game/songless-unlimited/')}">Play Songless Unlimited, the free music guessing game</a> · <a href="${loc(code, '/game/heardle/')}">Play Hookstep, the daily intro puzzle</a> · <a href="${loc(code, '/game/wordle-unlimited/')}">Play Folio, the unlimited five-letter word game</a></p>`,
+  }));
+  add('/privacy/', shell({
+    code,
+    urlPath: '/privacy/',
+    title: `Privacy | ${BRAND}`,
+    desc: dict.privacyParagraphs[0],
+    body: `<h1>${esc(dict.privacyPage)}</h1>${paragraphs('privacyParagraphs')}<p class="home-link"><a href="${loc(code, '/')}">Game pages linked from the DLE HQ homepage explain each puzzle</a></p>`,
+  }));
 }
-redirs.push('/zh/* /:splat 301');
-write('_redirects', redirs.join('\n') + '\n');
-// ads.txt：仅在启用 GAM 且配置了发布商 ID 时生成（不写 AdSense 占位 ID）
-const pubs = new Set();
-if (cfg.gam?.enabled && cfg.gam.publisherId) pubs.add(cfg.gam.publisherId.replace(/^ca-/, ''));
-if (pubs.size) write('ads.txt', [...pubs].map(p => `google.com, ${p}, DIRECT, f08c47fec0942fa0`).join('\n') + '\n');
-// 游戏 iframe 原始页（/games/*）是薄内容重复页：加 noindex（meta + X-Robots-Tag），不要用 robots.txt 屏蔽，否则 Google 看不到 noindex
-for (const d of fs.readdirSync(`${OUT}/games`)) { const f = `${OUT}/games/${d}/index.html`; if (fs.existsSync(f)) { const h = fs.readFileSync(f, 'utf8'); if (!/name="robots"/.test(h)) fs.writeFileSync(f, h.replace(/<meta charset[^>]*>/i.test(h) ? /(<meta charset[^>]*>)/i : /(<head>)/i, '$1<meta name="robots" content="noindex">')); } }
+
+write('404.html', shell({
+  code: DEF,
+  urlPath: '/404',
+  title: `404 | ${BRAND}`,
+  desc: L[DEF].notFound,
+  noindex: true,
+  body: `<h1>404</h1><p>${esc(L[DEF].notFound)} <a href="/">${esc(L[DEF].backHome)}</a></p><div class="grid">${games.map(game => card(game, DEF)).join('')}</div>`,
+}));
+
+const indexedPaths = ['/', ...indexableCats().map(slug => `/category/${slug}/`), ...games.map(game => `/game/${game.slug}/`), '/about/', '/privacy/'];
+const lastmod = urlPath => {
+  if (urlPath === '/') return games.map(addedOf).sort().at(-1) || TODAY;
+  const game = games.find(item => urlPath === `/game/${item.slug}/`);
+  if (game) return addedOf(game);
+  const match = urlPath.match(/^\/category\/([^/]+)\/$/);
+  if (match) {
+    const list = gamesIn(match[1]).map(addedOf).sort();
+    return list.at(-1) || TODAY;
+  }
+  return TODAY;
+};
+const entries = LOCALES.flatMap(code => indexedPaths.map(urlPath => `<url><loc>${SITE}${loc(code, urlPath)}</loc><lastmod>${lastmod(urlPath)}</lastmod>${
+  LOCALES.map(item => `<xhtml:link rel="alternate" hreflang="${L[item].htmlLang}" href="${SITE}${loc(item, urlPath)}"/>`).join('')
+}<xhtml:link rel="alternate" hreflang="x-default" href="${SITE}${urlPath}"/></url>`));
+write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${entries.join('\n')}\n</urlset>\n`);
+write('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
+
+const legacy = [
+  ['/game/snake/', '/'],
+  ['/game/snake', '/'],
+  ['/game/2048/', '/'],
+  ['/game/2048', '/'],
+  ['/category/arcade/', '/'],
+  ['/category/arcade', '/'],
+  ['/category/action/', '/'],
+  ['/category/action', '/'],
+  ['/category/puzzle/', '/category/quiz-trivia/'],
+  ['/category/puzzle', '/category/quiz-trivia/'],
+];
+const redirects = ['# Removed games and old categories'];
+for (const [from, to] of legacy) {
+  redirects.push(`${from} ${to} 301`);
+  redirects.push(`/zh${from} ${to} 301`);
+}
+redirects.push('# Former Chinese URLs');
+redirects.push('/zh / 301', '/zh/ / 301', '/zh/index.html / 301');
+for (const urlPath of indexedPaths) {
+  if (urlPath === '/') continue;
+  redirects.push(`/zh${urlPath} ${urlPath} 301`);
+  redirects.push(`/zh${urlPath.replace(/\/$/, '')} ${urlPath} 301`);
+}
+redirects.push('/zh/* /:splat 301');
+write('_redirects', redirects.join('\n') + '\n');
+
+for (const dir of fs.readdirSync(`${OUT}/games`)) {
+  const file = `${OUT}/games/${dir}/index.html`;
+  if (!fs.existsSync(file)) continue;
+  const html = fs.readFileSync(file, 'utf8');
+  if (!/name="robots"/.test(html)) {
+    fs.writeFileSync(file, html.replace(/(<head[^>]*>)/i, '$1<meta name="robots" content="noindex">'));
+  }
+}
 write('_headers', `/games/*\n  Cache-Control: public, max-age=86400\n  X-Robots-Tag: noindex\n/*\n  X-Content-Type-Options: nosniff\n`);
-console.log(`Built ${base.length} pages × ${LOCALES.length} locales (${LOCALES.join(',')}), ads=${GAM ? 'gam' : 'off'} -> ${OUT}/`);
+
+const home = fs.readFileSync(`${OUT}/index.html`, 'utf8');
+const sitemap = fs.readFileSync(`${OUT}/sitemap.xml`, 'utf8');
+const redirectFile = fs.readFileSync(`${OUT}/_redirects`, 'utf8');
+if (!home.includes('<title>DLE HQ – Daily Games Like Wordle: Play Free Unlimited Puzzle Games</title>')) throw new Error('homepage title');
+if (!home.includes('<h1>Daily Games Like Wordle</h1>')) throw new Error('homepage h1');
+if (!home.includes('src="/games/wordle-unlimited/index.html"')) throw new Error('homepage embed');
+if (/>Guides</.test(home)) throw new Error('empty guides section rendered');
+if (/100\+/.test(home)) throw new Error('homepage claims 100+');
+if (/googletag\.cmd|adsbygoogle|doubleclick|securepubads|adsense/i.test(home)) throw new Error('ads on homepage');
+for (const slug of catSlugs) {
+  const html = fs.readFileSync(`${OUT}/category/${slug}/index.html`, 'utf8');
+  const thin = gamesIn(slug).length < 2;
+  const expectedTitle = `<title>${esc(cat(slug, DEF).name)} DLE Games – Play Free Daily ${esc(cat(slug, DEF).name)} Puzzles | DLE HQ</title>`;
+  const titled = html.includes(expectedTitle);
+  if (!titled) throw new Error('category title ' + slug);
+  if (thin && !html.includes('noindex')) throw new Error('missing noindex ' + slug);
+  if (!thin && html.includes('noindex')) throw new Error('unexpected noindex ' + slug);
+  if (thin && sitemap.includes(`/category/${slug}/`)) throw new Error('thin category in sitemap ' + slug);
+  if (!thin && !sitemap.includes(`/category/${slug}/`)) throw new Error('indexable category missing from sitemap ' + slug);
+}
+for (const [from, to] of legacy) {
+  if (!redirectFile.includes(`${from} ${to} 301`)) throw new Error('missing redirect ' + from);
+  if (!redirectFile.includes(`/zh${from} ${to} 301`)) throw new Error('missing zh redirect ' + from);
+}
+if (!redirectFile.includes('/zh/ / 301') || !redirectFile.includes('/zh/* /:splat 301')) throw new Error('zh redirects dropped');
+for (const game of games) {
+  if (game.disclaimer) {
+    const script = fs.readFileSync(`public/games/${game.slug}/game.js`, 'utf8');
+    const page = fs.readFileSync(`${OUT}/game/${game.slug}/index.html`, 'utf8');
+    if (!script.includes(game.disclaimer) || !page.includes(game.disclaimer)) throw new Error('disclaimer missing ' + game.slug);
+  }
+  const page = fs.readFileSync(`${OUT}/game/${game.slug}/index.html`, 'utf8');
+  if (!page.includes(`<h1>${game.title}</h1>`)) throw new Error('h1 ' + game.slug);
+  if (!page.includes(`<title>${game.title} – Play Free Online (Unlimited, No Download) | DLE HQ</title>`)) throw new Error('game title ' + game.slug);
+  if (!page.includes('FAQPage') || !page.includes('BreadcrumbList')) throw new Error('schema ' + game.slug);
+}
+if (fs.existsSync(`${OUT}/games/snake`) || fs.existsSync(`${OUT}/games/2048`)) throw new Error('removed games still built');
+console.log(`Built DLE HQ. Fresh through +${FRESH_DAYS} days from added date (today ${TODAY}).`);
+for (const [slug, count] of Object.entries(counts)) console.log(`  ${slug}: ${count} words`);
+console.log(`Sitemap URLs: ${indexedPaths.length}. Indexable categories: ${indexableCats().join(', ') || '(none)'}.`);

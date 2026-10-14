@@ -1,7 +1,184 @@
 {
   "redirects": [
-    { "source": "/zh", "destination": "/", "statusCode": 301 },
-    { "source": "/zh/", "destination": "/", "statusCode": 301 },
-    { "source": "/zh/:path*", "destination": "/:path*", "statusCode": 301 }
+    {
+      "source": "/game/snake/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/game/snake/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/game/snake",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/game/snake",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/game/2048/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/game/2048/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/game/2048",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/game/2048",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/category/arcade/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/category/arcade/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/category/arcade",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/category/arcade",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/category/action/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/category/action/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/category/action",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/category/action",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/category/puzzle/",
+      "destination": "/category/quiz-trivia/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/category/puzzle/",
+      "destination": "/category/quiz-trivia/",
+      "statusCode": 301
+    },
+    {
+      "source": "/category/puzzle",
+      "destination": "/category/quiz-trivia/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/category/puzzle",
+      "destination": "/category/quiz-trivia/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/index.html",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/category/music/",
+      "destination": "/category/music/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/category/music",
+      "destination": "/category/music/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/game/songless-unlimited/",
+      "destination": "/game/songless-unlimited/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/game/songless-unlimited",
+      "destination": "/game/songless-unlimited/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/game/heardle/",
+      "destination": "/game/heardle/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/game/heardle",
+      "destination": "/game/heardle/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/game/wordle-unlimited/",
+      "destination": "/game/wordle-unlimited/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/game/wordle-unlimited",
+      "destination": "/game/wordle-unlimited/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/about/",
+      "destination": "/about/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/about",
+      "destination": "/about/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/privacy/",
+      "destination": "/privacy/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/privacy",
+      "destination": "/privacy/",
+      "statusCode": 301
+    },
+    {
+      "source": "/zh/:path*",
+      "destination": "/:path*",
+      "statusCode": 301
+    }
   ]
 }

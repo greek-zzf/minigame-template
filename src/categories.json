@@ -1,1 +1,20 @@
-["arcade", "puzzle", "action"]
+[
+  "word",
+  "geography",
+  "history",
+  "science-nature",
+  "music",
+  "tv",
+  "movies",
+  "gaming",
+  "sports",
+  "math",
+  "logic",
+  "color",
+  "visual",
+  "estimation",
+  "board-card",
+  "quiz-trivia",
+  "higher-or-lower",
+  "other"
+]

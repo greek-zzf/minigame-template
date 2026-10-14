@@ -1,21 +1,163 @@
 {
-  "langName": "English", "htmlLang": "en", "ogLocale": "en_US",
-  "metaSuffix": "Play free online in your browser – no download, no login, works on PC and mobile.",
-  "tagline": "Free HTML5 Games – Play Instantly, No Download",
-  "description": "Play free online HTML5 games in your browser. No download, no login. Works on PC and mobile.",
-  "home": "Home", "playNow": "▶ Play Now", "fullscreen": "⛶ Fullscreen",
-  "about": "About {title}", "howToPlay": "How to Play {title}", "tips": "Tips", "faq": "FAQ",
-  "similar": "Similar Games", "playFreeOn": "Play free online games on {site}",
-  "gameTitle": "{title} – Play Online for Free | {site}",
-  "catTitle": "{name} – Play Free Online | {site}",
-  "comingSoon": "More games coming soon.", "notFound": "Page not found.", "backHome": "Back home",
-  "footer": "All games are free to play in your browser.", "aboutPage": "About", "privacyPage": "Privacy",
-  "aboutText": "{site} is a collection of free HTML5 games.",
-  "privacyText": "We use cookies for analytics (Google Analytics) to understand how the site is used.",
-  "adLabel": "Advertisement", "language": "Language",
+  "langName": "English",
+  "htmlLang": "en",
+  "ogLocale": "en_US",
+  "metaSuffix": "Play free online at DLE HQ, with no download.",
+  "homeH1": "Daily Games Like Wordle",
+  "homeLead": "DLE HQ is a small shelf of free daily puzzle games you can play in the browser. Nothing here asks you to download an app.",
+  "description": "Play free daily puzzle games like Wordle on DLE HQ. Unlimited browser games with no download. Search the shelf, play a game on the homepage, and browse by category.",
+  "searchLabel": "Search games",
+  "searchPlaceholder": "Filter by game, category, or tag",
+  "searchResults": "Matching games",
+  "searchEmpty": "No games on DLE HQ match that search.",
+  "featured": "Featured game",
+  "browse": "Browse by Category",
+  "popular": "Popular",
+  "fresh": "Fresh Finds",
+  "freshNote": "New game pages stay in this list for at least five days after the date they are added.",
+  "freshEmpty": "No new pages are in the five-day window right now.",
+  "freshOlder": "Newer pages added after this one.",
+  "guides": "Guides",
+  "whatTitle": "What are DLE games?",
+  "whatParagraphs": [
+    "DLE games are daily-style puzzles: one tidy rule, a short round, and a reason to come back. The name points at the family of games that grew up beside Wordle, where you make a guess, read the clue, and try again. On DLE HQ the games are free, they run online in the browser, and they do not ask for a download.",
+    "The shelf is still small. A category page lists only the games that are actually playable. Fresh Finds holds pages added in the last few days so a new game does not vanish the moment it launches."
+  ],
+  "faq": "FAQ",
+  "homeFaq": [
+    {
+      "q": "What are DLE games?",
+      "a": "They are daily-style puzzle games. You get a compact rule set, you guess, and the game tells you how close you were. DLE HQ collects that kind of game in one place."
+    },
+    {
+      "q": "Are the games on DLE HQ free?",
+      "a": "Yes. Every game currently on DLE HQ is free to play in the browser. There is no account and no download."
+    },
+    {
+      "q": "Do I need to install anything?",
+      "a": "No. The featured game on the homepage and the games on their own pages run in the browser you already have."
+    },
+    {
+      "q": "How many games are on the site?",
+      "a": "Only the games listed on this page. DLE HQ does not pretend the shelf is larger than it is. When a game is added, it appears in Fresh Finds for at least five days and on its category page."
+    },
+    {
+      "q": "Is DLE HQ affiliated with Wordle, Heardle, or Spotify?",
+      "a": "No. The games here use their own names, colors, and rules. Hookstep and Folio each show an unofficial disclaimer on the game itself."
+    },
+    {
+      "q": "Why are some categories empty?",
+      "a": "The category list is the map of the hub. A shelf with no game yet still has a page, so a new puzzle has a place to land. Categories with fewer than two games stay out of the sitemap until more games are listed."
+    }
+  ],
+  "home": "Home",
+  "fullscreen": "Fullscreen",
+  "related": "Related games",
+  "emptyCategory": "No games are listed in this category yet.",
+  "notFound": "That page is not on DLE HQ.",
+  "backHome": "Back to the DLE HQ homepage",
+  "footer": "Games are free to play in the browser.",
+  "aboutPage": "About",
+  "privacyPage": "Privacy",
+  "aboutParagraphs": [
+    "DLE HQ is a small English-language shelf of daily puzzle games. Every game runs in the browser. There is no download and no account. Search, the featured game, and the category list all start on the DLE HQ homepage.",
+    "Songless Unlimited is the open-ended music game. Hookstep is the daily intro puzzle, and it is not affiliated with Spotify or Heardle. Folio is the unlimited five-letter word game, and it is not affiliated with The New York Times or Wordle. Each game page explains its own rules.",
+    "A category with fewer than two games is not promoted as a finished section. Fresh Finds keeps a new page listed for at least five days after the date it is added."
+  ],
+  "privacyParagraphs": [
+    "DLE HQ uses Google Analytics to understand which pages are opened. That measurement uses cookies. The games also store a streak, a daily result, or a colorblind setting in local storage on your device. Those values stay in the browser. They are not an account.",
+    "DLE HQ does not show ads and does not ask you to create a login. Song previews in the music games are requested from Apple’s public iTunes lookup when you play, so that service receives the request your browser sends. Clearing site data for this site removes the local scores."
+  ],
   "categories": {
-    "arcade": {"name": "Arcade Games", "short": "Arcade", "intro": "Fast, fun arcade games you can play instantly in your browser."},
-    "puzzle": {"name": "Puzzle Games", "short": "Puzzle", "intro": "Train your brain with free online puzzle, music, and number games."},
-    "action": {"name": "Action Games", "short": "Action", "intro": "Run, jump and dodge in free HTML5 action games."}
+    "word": {
+      "name": "Word",
+      "short": "Word",
+      "intro": "Word DLE games hide a short word and ask you to find it from letter clues. Rounds are built to finish in a few minutes, in the browser, with no download."
+    },
+    "geography": {
+      "name": "Geography",
+      "short": "Geography",
+      "intro": "Geography DLE games turn places into the puzzle: countries, capitals, borders, and where something sits on a map. You can play a round without keeping an atlas open."
+    },
+    "history": {
+      "name": "History",
+      "short": "History",
+      "intro": "History DLE games use a date, a person, or an event as the thing you are trying to name. They are short puzzles, not lectures, and the answer should be checkable once it is revealed."
+    },
+    "science-nature": {
+      "name": "Science & Nature",
+      "short": "Science",
+      "intro": "Science and nature DLE games cover living things, weather, and how the physical world behaves. Expect a compact puzzle about an animal, a plant, or a process."
+    },
+    "music": {
+      "name": "Music",
+      "short": "Music",
+      "intro": "Music DLE games ask you to name a song or an artist from a short listen. Songless Unlimited is the open-ended category game, and Hookstep is the daily intro puzzle."
+    },
+    "tv": {
+      "name": "TV",
+      "short": "TV",
+      "intro": "TV DLE games build a puzzle around shows, characters, and episodes. The answer is something a viewer could recognize, without needing the series open in another tab."
+    },
+    "movies": {
+      "name": "Movies",
+      "short": "Movies",
+      "intro": "Movie DLE games use films, casts, and scenes as the clue. You are usually naming a title or a person, and the round ends once that guess is confirmed."
+    },
+    "gaming": {
+      "name": "Gaming",
+      "short": "Gaming",
+      "intro": "Gaming DLE games pull a puzzle from video games: a character, an item, or a title. They are a short sitting, not a walkthrough, and they sit with the other daily shelves."
+    },
+    "sports": {
+      "name": "Sports",
+      "short": "Sports",
+      "intro": "Sports DLE games turn athletes, scores, and records into a guess. You do not need a live broadcast. The page gives the clue, and the answer is a name or a number you can check."
+    },
+    "math": {
+      "name": "Math",
+      "short": "Math",
+      "intro": "Math DLE games are number puzzles with a target you can reach in one sitting. The rule fits on the screen, and the challenge is the pattern or the calculation."
+    },
+    "logic": {
+      "name": "Logic",
+      "short": "Logic",
+      "intro": "Logic DLE games start with a few constraints and ask you to narrow what is still possible. Deduction is the whole round, and the page should state every rule you need."
+    },
+    "color": {
+      "name": "Color",
+      "short": "Color",
+      "intro": "Color DLE games ask you to name, match, or mix a shade. The puzzle is visual, the answer is a color or a color word, and the round is built for an ordinary screen."
+    },
+    "visual": {
+      "name": "Visual",
+      "short": "Visual",
+      "intro": "Visual DLE games hide the answer in a picture, a silhouette, or a crop. You look first and then name what you see. The clue is an image rather than a definition."
+    },
+    "estimation": {
+      "name": "Estimation",
+      "short": "Estimation",
+      "intro": "Estimation DLE games ask how many, how far, or how large, and then show the gap. A close guess is the skill, and the page should explain how that distance is scored."
+    },
+    "board-card": {
+      "name": "Board & Card",
+      "short": "Board & Card",
+      "intro": "Board and card DLE games borrow a piece, a hand, or a board from tabletop play and turn one rule into a puzzle. They are not full rulebooks for the original games."
+    },
+    "quiz-trivia": {
+      "name": "Quiz & Trivia",
+      "short": "Quiz",
+      "intro": "Quiz and trivia DLE games are short question rounds that do not fit a narrower shelf. Mixed topics land here, and each game page still explains its own scoring."
+    },
+    "higher-or-lower": {
+      "name": "Higher or Lower",
+      "short": "Higher or Lower",
+      "intro": "Higher or lower DLE games show a value and ask whether the next one sits above or below it. The streak is the game, and one wrong call ends the run."
+    },
+    "other": {
+      "name": "Other",
+      "short": "Other",
+      "intro": "Other DLE games are daily puzzles that do not sit cleanly on the shelves above. If a game is hard to file, it is listed here instead of being forced into the wrong category."
+    }
   }
 }
