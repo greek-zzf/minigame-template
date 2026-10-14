@@ -43,7 +43,7 @@
     },
     {
       "q": "Is DLE HQ affiliated with Wordle, Heardle, or Spotify?",
-      "a": "No. The games here use their own names, colors, and rules. Hookstep and Folio each show an unofficial disclaimer on the game itself."
+      "a": "No. The games here use their own names, colors, and rules. Hookstep, Folio, Waymark, and Bunting each show an unofficial disclaimer on the game itself."
     },
     {
       "q": "Why are some categories empty?",
@@ -61,7 +61,7 @@
   "privacyPage": "Privacy",
   "aboutParagraphs": [
     "DLE HQ is a small English-language shelf of daily puzzle games. Every game runs in the browser. There is no download and no account. Search, the featured game, and the category list all start on the DLE HQ homepage.",
-    "Songless Unlimited is the open-ended music game. Hookstep is the daily intro puzzle, and it is not affiliated with Spotify or Heardle. Folio is the unlimited five-letter word game, and it is not affiliated with The New York Times or Wordle. Each game page explains its own rules.",
+    "Songless Unlimited is the open-ended music game. Hookstep is the daily intro puzzle, and it is not affiliated with Spotify or Heardle. Folio is the unlimited five-letter word game, and it is not affiliated with The New York Times or Wordle. Waymark is the unlimited country-distance game on the Globle page, and Bunting is the flag game on the Flagle page. Neither is affiliated with Globle or Flagle. Each game page explains its own rules.",
     "A category with fewer than two games is not promoted as a finished section. Fresh Finds keeps a new page listed for at least five days after the date it is added."
   ],
   "privacyParagraphs": [
@@ -77,7 +77,7 @@
     "geography": {
       "name": "Geography",
       "short": "Geography",
-      "intro": "Geography DLE games turn places into the puzzle: countries, capitals, borders, and where something sits on a map. You can play a round without keeping an atlas open."
+      "intro": "Geography DLE games turn places into the puzzle: countries, capitals, borders, and where something sits on a map. Globle is Waymark, an unlimited country-distance round. Flagle is Bunting, a six-guess flag round with bonus questions. You can play without keeping an atlas open."
     },
     "history": {
       "name": "History",

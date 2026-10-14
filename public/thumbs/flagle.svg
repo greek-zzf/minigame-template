@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <rect width="320" height="180" fill="#f6f1e7"/>
+  <path d="M28 48 H150" stroke="#241c33" stroke-width="3" fill="none"/>
+  <path d="M40 48 L58 78 L76 48 Z" fill="#c44536"/>
+  <path d="M72 48 L92 86 L112 48 Z" fill="#2c6b5a"/>
+  <path d="M108 48 L124 72 L140 48 Z" fill="#e4b15a"/>
+  <text x="36" y="128" fill="#241c33" font-family="system-ui, sans-serif" font-size="36" font-weight="800" letter-spacing="2">BUNTING</text>
+  <text x="36" y="154" fill="#c44536" font-family="system-ui, sans-serif" font-size="15">Six tries at a flag</text>
+</svg>
