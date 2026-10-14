@@ -1,0 +1,18 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- DLE HQ - Variant 1: The Monogram Matrix (Letter D as Puzzle Grid) -->
+  <g fill="currentColor">
+    <!-- Left spine: 3 Wordle blocks -->
+    <rect x="22" y="20" width="16" height="16" rx="4"/>
+    <rect x="22" y="42" width="16" height="16" rx="4"/>
+    <rect x="22" y="64" width="16" height="16" rx="4"/>
+    <!-- Top & bottom bridges -->
+    <rect x="44" y="20" width="16" height="16" rx="4"/>
+    <rect x="44" y="64" width="16" height="16" rx="4"/>
+    <!-- Right apex: Flipped diamond tile perfectly nested -->
+    <g transform="rotate(45 64 50)">
+      <rect x="56" y="42" width="16" height="16" rx="4"/>
+    </g>
+    <!-- Solved core void inside the diamond -->
+    <circle cx="64" cy="50" r="3" fill="#FFFFFF"/>
+  </g>
+</svg>

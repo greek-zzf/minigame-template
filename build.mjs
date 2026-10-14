@@ -25,6 +25,50 @@ fs.rmSync(OUT, { recursive: true, force: true });
 fs.cpSync('public', OUT, { recursive: true });
 fs.copyFileSync('src/style.css', `${OUT}/style.css`);
 
+function pngSize(file) {
+  const buf = fs.readFileSync(file);
+  if (buf.toString('ascii', 12, 16) !== 'IHDR') throw new Error('not a png: ' + file);
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+}
+
+function writeFaviconIco(outFile) {
+  const sizes = [16, 32, 48];
+  const images = sizes.map(size => {
+    const file = `${OUT}/favicon-${size}x${size}.png`;
+    const dim = pngSize(file);
+    if (dim.width !== size || dim.height !== size) throw new Error(`favicon-${size}x${size}.png is ${dim.width}x${dim.height}`);
+    return fs.readFileSync(file);
+  });
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(images.length, 4);
+  const entries = Buffer.alloc(16 * images.length);
+  let offset = 6 + entries.length;
+  images.forEach((data, index) => {
+    const size = sizes[index];
+    const at = index * 16;
+    entries.writeUInt8(size, at);
+    entries.writeUInt8(size, at + 1);
+    entries.writeUInt16LE(1, at + 4);
+    entries.writeUInt16LE(32, at + 6);
+    entries.writeUInt32LE(data.length, at + 8);
+    entries.writeUInt32LE(offset, at + 12);
+    offset += data.length;
+  });
+  fs.writeFileSync(outFile, Buffer.concat([header, entries, ...images]));
+}
+
+writeFaviconIco(`${OUT}/favicon.ico`);
+
+function logoSvg() {
+  return fs.readFileSync('src/brand/dlehq-logo-horizontal.svg', 'utf8')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace('<svg ', '<svg class="logo-mark" width="200" height="60" aria-hidden="true" focusable="false" ')
+    .replaceAll('font-family="-apple-system, sans-serif"', 'font-family="DLE HQ Lockup, system-ui, -apple-system, \'Segoe UI\', sans-serif"')
+    .trim();
+}
+
 const write = (rel, html) => {
   if (/[\u4e00-\u9fff]/.test(html)) throw new Error('Chinese text in ' + rel);
   const file = path.join(OUT, rel);
@@ -137,10 +181,12 @@ function sortRelated(current, list) {
   });
 }
 
-function shell({ code, title, desc, urlPath, body, ld = [], image, noindex = false }) {
+function shell({ code, title, desc, urlPath, body, ld = [], image, imageWidth, imageHeight, noindex = false }) {
   const dict = L[code];
   const url = SITE + loc(code, urlPath);
-  const img = SITE + (image || '/favicon.svg');
+  const img = SITE + (image || '/og.png');
+  const imgWidth = imageWidth || (image ? '' : 1200);
+  const imgHeight = imageHeight || (image ? '' : 630);
   const alternates = LOCALES.map(item => `<link rel="alternate" hreflang="${L[item].htmlLang}" href="${SITE}${loc(item, urlPath)}">`).join('')
     + `<link rel="alternate" hreflang="x-default" href="${SITE}${loc(DEF, urlPath)}">`;
   const footerCats = catSlugs.map(slug => {
@@ -157,14 +203,14 @@ function shell({ code, title, desc, urlPath, body, ld = [], image, noindex = fal
   return `<!doctype html><html lang="${dict.htmlLang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title><meta name="description" content="${esc(desc)}">
-<link rel="canonical" href="${url}">${noindex ? '<meta name="robots" content="noindex, follow">' : alternates}<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<meta property="og:type" content="website"><meta property="og:locale" content="${dict.ogLocale}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${img}"><meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="${url}">${noindex ? '<meta name="robots" content="noindex, follow">' : alternates}<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:locale" content="${dict.ogLocale}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${img}">${imgWidth ? `<meta property="og:image:width" content="${imgWidth}"><meta property="og:image:height" content="${imgHeight}">` : ''}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${img}">
 <link rel="stylesheet" href="/style.css">
 ${analytics}
 ${ld.map(entry => `<script type="application/ld+json">${json(entry)}</script>`).join('\n')}
 </head><body>
 <a class="skip" href="#content">Skip to content</a>
-<header><div class="wrap"><a class="logo" href="${loc(code, '/')}">${esc(BRAND)}</a><nav aria-label="Primary"><a href="${loc(code, '/#categories')}">Categories</a><a href="${loc(code, '/#popular')}">Popular</a><a href="${loc(code, '/about/')}">${esc(dict.aboutPage)}</a></nav></div></header>
+<header><div class="wrap"><a class="logo" href="${loc(code, '/')}" aria-label="DLE HQ">${logoSvg()}</a><nav aria-label="Primary"><a href="${loc(code, '/#categories')}">Categories</a><a href="${loc(code, '/#popular')}">Popular</a><a href="${loc(code, '/about/')}">${esc(dict.aboutPage)}</a></nav></div></header>
 <main id="content" class="wrap">${body}</main>
 <footer><div class="wrap foot">
 <div><strong>${esc(BRAND)}</strong><p><a href="${loc(code, '/')}">Play free daily puzzle games on the DLE HQ homepage</a></p><p><a href="${loc(code, '/about/')}">${esc(dict.aboutPage)}</a> · <a href="${loc(code, '/privacy/')}">${esc(dict.privacyPage)}</a></p><p>© ${new Date().getFullYear()} ${esc(BRAND)}. ${esc(dict.footer)}</p></div>
@@ -367,6 +413,8 @@ q.addEventListener('input', () => {
       title: `${view.title} – Play Free Online (Unlimited, No Download) | ${BRAND}`,
       desc: view.short,
       image: view.thumb,
+      imageWidth: 320,
+      imageHeight: 180,
       ld: [
         {
           '@context': 'https://schema.org',
@@ -498,7 +546,58 @@ write('_headers', `/games/*\n  Cache-Control: public, max-age=86400\n  X-Robots-
 const home = fs.readFileSync(`${OUT}/index.html`, 'utf8');
 const sitemap = fs.readFileSync(`${OUT}/sitemap.xml`, 'utf8');
 const redirectFile = fs.readFileSync(`${OUT}/_redirects`, 'utf8');
+const ogSize = pngSize(`${OUT}/og.png`);
+if (ogSize.width !== 1200 || ogSize.height !== 630) throw new Error(`og.png is ${ogSize.width}x${ogSize.height}`);
+const ico = fs.readFileSync(`${OUT}/favicon.ico`);
+if (ico.readUInt16LE(0) !== 0 || ico.readUInt16LE(2) !== 1 || ico.readUInt16LE(4) !== 3) throw new Error('favicon.ico');
+const manifest = JSON.parse(fs.readFileSync(`${OUT}/site.webmanifest`, 'utf8'));
+const manifestIcons = (manifest.icons || []).map(icon => icon.src).join(' ');
+if (!manifestIcons.includes('/android-chrome-192x192.png') || !manifestIcons.includes('/android-chrome-512x512.png')) throw new Error('manifest icons');
+function walkHtml(dir, acc = []) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === 'games') continue;
+      walkHtml(full, acc);
+    } else if (entry.name.endsWith('.html')) acc.push(full);
+  }
+  return acc;
+}
+const iconNeedles = [
+  'rel="icon" href="/favicon.ico" sizes="any"',
+  'rel="icon" href="/favicon.svg" type="image/svg+xml"',
+  'sizes="16x16" href="/favicon-16x16.png"',
+  'sizes="32x32" href="/favicon-32x32.png"',
+  'sizes="48x48" href="/favicon-48x48.png"',
+  'rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"',
+  'rel="manifest" href="/site.webmanifest"',
+  'aria-label="DLE HQ"',
+  'class="logo-mark"',
+  'name="twitter:image"',
+  'property="og:image:width"',
+  'property="og:image:height"',
+];
+for (const file of walkHtml(OUT)) {
+  const html = fs.readFileSync(file, 'utf8');
+  for (const needle of iconNeedles) {
+    if (!html.includes(needle)) throw new Error(`${needle} missing in ${file}`);
+  }
+  if (html.includes('og:image" content="https://dlehq.com/favicon.svg"')) throw new Error('old og image in ' + file);
+}
 if (!home.includes('<title>DLE HQ – Daily Games Like Wordle: Play Free Unlimited Puzzle Games</title>')) throw new Error('homepage title');
+if (!home.includes('property="og:image" content="https://dlehq.com/og.png"')) throw new Error('homepage og image');
+if (!home.includes('property="og:image:width" content="1200"')) throw new Error('homepage og width');
+if (!home.includes('property="og:image:height" content="630"')) throw new Error('homepage og height');
+if (!home.includes('name="twitter:image" content="https://dlehq.com/og.png"')) throw new Error('homepage twitter image');
+const about = fs.readFileSync(`${OUT}/about.html`, 'utf8');
+if (!about.includes('property="og:image" content="https://dlehq.com/og.png"')) throw new Error('about og image');
+for (const game of games) {
+  const page = fs.readFileSync(`${OUT}/game/${game.slug}.html`, 'utf8');
+  const expected = `property="og:image" content="${SITE}${game.thumb}"`;
+  if (!page.includes(expected)) throw new Error('game og image ' + game.slug);
+  if (!page.includes('property="og:image:width" content="320"') || !page.includes('property="og:image:height" content="180"')) throw new Error('game og size ' + game.slug);
+  if (page.includes('https://dlehq.com/og.png')) throw new Error('game page dropped its own image ' + game.slug);
+}
 if (!home.includes('<h1>Daily Games Like Wordle</h1>')) throw new Error('homepage h1');
 if (!home.includes('src="/games/wordle-unlimited/index.html"')) throw new Error('homepage embed');
 if (/>Guides</.test(home)) throw new Error('empty guides section rendered');

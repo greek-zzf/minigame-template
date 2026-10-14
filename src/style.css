@@ -1,3 +1,24 @@
+@font-face {
+  font-family: "DLE HQ Lockup";
+  src: url("/fonts/inter-light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DLE HQ Lockup";
+  src: url("/fonts/inter-medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DLE HQ Lockup";
+  src: url("/fonts/inter-extrabold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
 :root {
   --bg: #12161e;
   --card: #1c2330;
@@ -15,10 +36,10 @@ img { max-width: 100%; }
 .skip:focus { left: 8px; }
 .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
 header { background: #171d28; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--line); }
-header .wrap { display: flex; align-items: center; gap: 18px; min-height: 58px; }
-.logo { color: var(--coral); font-weight: 800; font-size: 20px; text-decoration: none; letter-spacing: 0.01em; white-space: nowrap; }
-.logo::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 8px; border-radius: 4px; background: conic-gradient(from 210deg, #ff6b4a, #f0c36a, #8eb6ff, #ff6b4a); vertical-align: -2px; }
-nav[aria-label="Primary"] { display: flex; gap: 14px; }
+header .wrap { display: flex; align-items: center; gap: 18px; min-height: 68px; }
+.logo { color: var(--fg); display: inline-flex; align-items: center; flex: 0 0 auto; line-height: 0; text-decoration: none; }
+.logo-mark { height: 52px; width: auto; display: block; }
+nav[aria-label="Primary"] { display: flex; gap: 14px; align-items: center; }
 nav[aria-label="Primary"] a { color: var(--mut); text-decoration: none; }
 nav[aria-label="Primary"] a:hover { color: #fff; }
 h1 { font-size: 32px; line-height: 1.2; margin: 18px 0 8px; }
@@ -73,7 +94,15 @@ footer { margin-top: 48px; padding: 28px 0 36px; border-top: 1px solid var(--lin
 button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--coral); outline-offset: 2px; }
 @media (max-width: 800px) {
   h1 { font-size: 26px; }
+  header .wrap { min-height: 58px; gap: 12px; }
+  .logo-mark { height: 40px; }
+  nav[aria-label="Primary"] { gap: 12px; font-size: 15px; }
   .foot { grid-template-columns: 1fr; }
   .frame.tall { height: calc(100dvh - 120px); min-height: 560px; }
   .frame.board, .featured .frame.board { height: calc(100dvh - 150px); min-height: 560px; }
+}
+@media (max-width: 420px) {
+  header .wrap { gap: 8px; }
+  .logo-mark { height: 36px; }
+  nav[aria-label="Primary"] { gap: 8px; font-size: 13px; }
 }
